@@ -1,4 +1,4 @@
-preprocess_dataset <- function(df, filename) {
+preprocess_dataset <- function(df, filename, save = T) {
   
   # Get center and meal data
   df_center <- read.csv2(paste0("./data/raw/", files_info$file$name[1]), sep = ",") %>% as.data.table()
@@ -25,8 +25,9 @@ preprocess_dataset <- function(df, filename) {
   # Select numeric cols
   numeric_cols <- unlist(lapply(df_result, is.numeric))
   
-  df_result %>% 
-    write.csv2(paste0("./data/processed/", filename), sep = ";", row.names = FALSE)
-  
+  if(save) {
+    df_result %>% 
+      write.csv2(paste0("./data/processed/", filename), sep = ";", row.names = FALSE)  
+  }
   return(df_result)
 }

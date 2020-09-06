@@ -8,3 +8,12 @@ load_packages <- function(packages){
   # Packages loading
   invisible(lapply(packages, library, character.only = TRUE))
 }
+
+load_packages_shiny <- function() {
+  
+  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard')
+  
+  load_packages(packages)
+  
+  options(shiny.sanitize.errors = TRUE)
+}
