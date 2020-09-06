@@ -6,6 +6,11 @@ from flask import Flask
 from flask import request
 # from flask_restful import Api, Resource
 
+from src.data.data_collect import read_train_data
+from src.model.xgboost_model import preprocess_data, train_xgboost_model
+
+df_train = read_train_data()
+
 regressor_model = joblib.load('./models/xgboost_model.pkl')
 features = joblib.load('./models/xgboost_features.pkl')
 
@@ -41,6 +46,23 @@ def predict():
 
 	return pred[0]
 
+@app.route('/train', methods=['POST'])
+def train():
+
+	center_id = request.args.get('center_id')
+	meal_id = request.args.get('meal_id')
+
+	df_preprocessed = preprocess_data(df_train, center_id, meal_id)
+	
+	regressor_model, rmse = train_xgboost_model(df_preprocessed)
+
+	features = df.drop(columns='num_orders').columns
+
+	result = {
+		'features' : features,
+		'rmse' : rmse
+	}
+	return jsonify(result)
 # api.add_resource(Test, '/my_custom_test')
 # api.add_resource(Predict, '/predict')
 
