@@ -24,7 +24,7 @@ app = Flask(__name__)
 # 		return {'predictions':predictions}
 
 @app.route('/test', methods=['GET'])
-def get(self):
+def get():
 	return {'response': 'test successful!!!!!'}
 
 
@@ -41,8 +41,8 @@ def predict():
 
 	return pred[0]
 
-api.add_resource(Test, '/my_custom_test')
-api.add_resource(Predict, '/predict')
+# api.add_resource(Test, '/my_custom_test')
+# api.add_resource(Predict, '/predict')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
