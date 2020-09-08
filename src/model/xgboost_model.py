@@ -4,7 +4,7 @@ import pandas as pd
 import xgboost as xgb
 from sklearn import metrics
 
-def preprocess_data(df, center_id, meal_id):
+def preprocess_data(df, center_id, meal_id, start_date = '2017-01-01'):
 
 	# Select the center and meal
 	condition1 = df['center_id'] == center_id
@@ -14,7 +14,7 @@ def preprocess_data(df, center_id, meal_id):
 
 	# Added date variables
 	last_weeks = len(df_processed)
-	df_processed.date = pd.date_range('2017-01-01', periods=last_weeks, freq='W')
+	df_processed.date = pd.date_range(start_date, periods=last_weeks, freq='W')
 
 	df_processed['day'] = df_processed.date.dt.day
 	df_processed['month'] = df_processed.date.dt.month
