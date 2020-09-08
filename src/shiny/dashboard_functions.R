@@ -127,3 +127,53 @@ show_plotly_general_orders <- function(data) {
   fig
 }
 
+# Show predictions Plotly chart
+show_plotly_prediction_line_chart <- function(data_train, data_test) {
+  # Summarise train dataframe
+  df_plot_train <- data_train %>% 
+    group_by(date) %>%
+    summarise(
+      total_orders = sum(num_orders)
+    ) %>% 
+    ungroup()
+  
+  fig <- df_plot_train %>% plot_ly(
+    x = ~date,
+    y = ~total_orders,
+    name = 'Histórico', 
+    type = 'scatter', 
+    mode = 'lines'
+  )
+  
+  # Summarise test dataframe
+  df_plot_test <- data_test %>% 
+    group_by(date) %>%
+    summarise(
+      total_orders = sum(num_orders)
+    ) %>% 
+    ungroup()
+  
+  fig <- fig %>% add_lines(
+    data = df_plot_test,
+    x = ~date,
+    y = ~total_orders,
+    name = 'Predicción', 
+    type = 'scatter', 
+    mode = 'lines'
+  )
+  
+  fig <- fig %>% 
+    layout(
+      title = "Previsión de pedidos",
+      separators = ',.',
+      xaxis = list(
+        title = "Fecha"
+      ),
+      yaxis = list (
+        title = "Nb pedidos",
+        tickformat = ",.0f"
+      )
+    )
+  
+  fig
+}

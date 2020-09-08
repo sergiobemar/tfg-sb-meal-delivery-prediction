@@ -1,3 +1,11 @@
+config_app <- function() {
+  
+  # Get configuration vars from JSON file
+  config_file <<- jsonlite::fromJSON("./references/config_shiny_app.json")
+  
+  options(shiny.sanitize.errors = TRUE)
+}
+
 load_packages <- function(packages){
   # Install packages not yet installed
   installed_packages <- packages %in% rownames(installed.packages())
@@ -11,9 +19,11 @@ load_packages <- function(packages){
 
 load_packages_shiny <- function() {
   
-  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets')
+  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'shinysky', 'httr')
   
   load_packages(packages)
   
-  options(shiny.sanitize.errors = TRUE)
+  source('./src/data/data_collect.R')
+  source('./src/shiny/dashboard_functions.R')
+  source('./src/deploy/api_calls.R')
 }
