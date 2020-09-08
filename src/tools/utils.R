@@ -11,7 +11,7 @@ load_packages <- function(packages){
 
 load_packages_shiny <- function() {
   
-  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard')
+  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets')
   
   load_packages(packages)
   
