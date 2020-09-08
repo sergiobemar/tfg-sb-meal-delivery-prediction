@@ -89,6 +89,7 @@ def train_xgboost_model(df_train_processed):
 	Y_train = np.exp(Y_train)
 	Y_test = np.exp(Y_test)
 
+	# Get evaluation metric
 	mse = metrics.mean_squared_error(Y_test, xgb_preds)
 	rmse = np.sqrt(mse)
 	print('RMSE: ' + str(rmse))

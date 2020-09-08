@@ -41,6 +41,13 @@ def get():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+	
+	# Load model
+	regressor_model = joblib.load('./models/xgboost_model.pkl')
+	features = joblib.load('./models/xgboost_features.pkl')
+	
+	for i in features:
+		print('FEATURE: ' + i)
 # 	data = {}
 	
 # 	for v in features:
@@ -66,7 +73,9 @@ def predict():
 	df = df.apply(pd.to_numeric)
 	
 	print('NUM ROWS: ' + str(len(df.index)))
-	pred = regressor_model.predict(df[features])
+	print(df.columns)
+	
+	pred = regressor_model.predict(df)
 	
 	# Use exponential to convert the result
 	pred_results = np.exp(pred)
@@ -92,6 +101,18 @@ def predict():
 	
 	return result
 
+@app.route('/predict2', methods=['POST'])
+def predict2():
+	
+	# Get data from the request
+	content = request.json
+	
+	center_id = content['center_id']
+	meal_id = content['meal_id']
+	
+	# Preprocess the dataframe
+	df_preprocessed = preprocess_data(df_train, center_id, meal_id)
+
 @app.route('/save', methods=['GET'])
 def save_model():
 	
@@ -109,13 +130,24 @@ def train():
 	center_id = content['center_id']
 	meal_id = content['meal_id']
 	
+	print("CENTER: " + str(center_id))
+	print("MEAL: " + str(meal_id))
+	
 	# Preprocess the dataframe
 	df_preprocessed = preprocess_data(df_train, center_id, meal_id)
 	
-	regressor_model, rmse = train_xgboost_model(df_preprocessed)
+	select_cols = ['week', 'checkout_price', 'base_price', 'emailer_for_promotion', 'homepage_featured', 'num_orders', 'city_code', 'region_code', 'op_area', 'month', 'quarter']
+	
+	# Train the model
+	regressor_model, rmse = train_xgboost_model(df_preprocessed[select_cols])
 
-	features = list(df_preprocessed.drop(columns='num_orders').columns)
+	features = list(df_preprocessed[select_cols].drop(columns='num_orders').columns)
 
+	# Save the model and features
+	joblib.dump(regressor_model, './models/xgboost_model.pkl')
+	joblib.dump(features, './models/xgboost_features.pkl')
+	
+	# Return dict results
 	result = {
 		'features' : features,
 		'rmse' : rmse
