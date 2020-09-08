@@ -1,5 +1,6 @@
 import joblib
 import json
+import numpy as np
 import os
 import pandas as pd
 
@@ -52,17 +53,34 @@ def predict():
 # 	json_data_dict = request.get_json(force=True)
 #     X = json_data_dict['features']
 
+	# Read dataframe
 	df = pd.DataFrame.from_records(content)
 	
-	print(df.columns)
+	# Set column date as index in order to use it in predictions result
+	df = df.set_index('date')
+	
+	# Select significative columns
 	df = df[features]
-# 	df = pd.DataFrame(data)
 
+	# Cast to numeric
 	df = df.apply(pd.to_numeric)
 	
 	print('NUM ROWS: ' + str(len(df.index)))
 	pred = regressor_model.predict(df[features])
-
+	
+	# Use exponential to convert the result
+	pred_results = np.exp(pred)
+	
+	# Create a dataframe with predictions
+	df_result = pd.DataFrame({"num_orders" : pred_results})
+	
+	# Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
+	df_result.index = df.index
+	df_result.reset_index(inplace=True)
+	
+	# Generate a JSON with results
+	result = df_result.to_json(orient='records')
+	
 # 	return pred[0]
 # 	result = {
 # 		"features" : features,
@@ -70,7 +88,8 @@ def predict():
 # 		"pred" : list(pred[0])
 # 	}
 # 	print(pred)
-	result = {i : str(pred[i]) for i in range(0, len(pred))}
+# 	result = {df.index[i] : str(pred_results[i]) for i in range(0, len(pred_results))}
+	
 	return result
 
 @app.route('/save', methods=['GET'])
