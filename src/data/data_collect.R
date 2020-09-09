@@ -23,7 +23,7 @@ get_data_predict <- function(center, meal) {
     filter((center_id == as.integer(center)) & (meal_id == as.integer(meal)))
   
   # Preprocessed train dataset
-  df_pred_orders <- preprocess_dataset(df, "pred_train.csv", save = FALSE)
+  df_pred_orders <- preprocess_dataset(df_pred_orders, "pred_train.csv", save = FALSE)
   
   # Get test dataframe and it's preprocessed
   df_pred_test <- df_test %>%
