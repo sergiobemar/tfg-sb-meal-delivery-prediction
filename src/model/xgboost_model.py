@@ -5,7 +5,7 @@ import xgboost as xgb
 from sklearn import metrics
 
 def preprocess_data(df, center_id, meal_id, start_date = '2017-01-01'):
-
+	
 	# Select the center and meal
 	condition1 = df['center_id'] == center_id
 	condition2 = df['meal_id'] == meal_id

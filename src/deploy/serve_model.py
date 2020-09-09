@@ -3,20 +3,24 @@ import json
 import numpy as np
 import os
 import pandas as pd
+import sys
 
+from datetime import timedelta  
 from flask import Flask
 from flask import jsonify
 from flask import request
 # from flask_restful import Api, Resource
-import sys
 
 os.chdir('/home/jupyter/tfg-sb-meal-delivery-prediction/')
 
-from src.data.data_collect import read_train_data
+from src.data.data_collect import read_test_data, read_train_data
 from src.model.xgboost_model import preprocess_data, train_xgboost_model
 
+# Read datasets
+df_test = read_test_data()
 df_train = read_train_data()
 
+# Load model
 regressor_model = joblib.load('./models/xgboost_model.pkl')
 features = joblib.load('./models/xgboost_features.pkl')
 
@@ -45,20 +49,9 @@ def predict():
 	# Load model
 	regressor_model = joblib.load('./models/xgboost_model.pkl')
 	features = joblib.load('./models/xgboost_features.pkl')
-	
-	for i in features:
-		print('FEATURE: ' + i)
-# 	data = {}
-	
-# 	for v in features:
-# 		data[v] = [request.form[v]]
-	
-# 	print(request.form)
+
+	# Get content from POST request
 	content = request.json
-# 	print('Contenido: ' + content)
-		
-# 	json_data_dict = request.get_json(force=True)
-#     X = json_data_dict['features']
 
 	# Read dataframe
 	df = pd.DataFrame.from_records(content)
@@ -72,6 +65,7 @@ def predict():
 	# Cast to numeric
 	df = df.apply(pd.to_numeric)
 	
+	# Print num rows
 	print('NUM ROWS: ' + str(len(df.index)))
 	print(df.columns)
 	
@@ -104,14 +98,48 @@ def predict():
 @app.route('/predict2', methods=['POST'])
 def predict2():
 	
-	# Get data from the request
+	# Load model
+	regressor_model = joblib.load('./models/xgboost_model.pkl')
+	features = joblib.load('./models/xgboost_features.pkl')
+
+	# Get center and meal from the request
 	content = request.json
 	
-	center_id = content['center_id']
-	meal_id = content['meal_id']
+	# center_id = content['center_id']
+	# meal_id = content['meal_id']
 	
-	# Preprocess the dataframe
-	df_preprocessed = preprocess_data(df_train, center_id, meal_id)
+	# print("CENTER: " + str(center_id))
+	# print("MEAL: " + str(meal_id))
+
+	# # Preprocess test dataframe
+	# df_train_preprocessed = preprocess_data(df_test, center_id, meal_id) 
+
+	# next_day = df_train_preprocessed.index.max().date() + timedelta(days=1)
+
+	# df_test_preprocessed = preprocess_data(df_test, center_id, meal_id, next_day)
+	
+	# # Print num rows
+	# print('NUM ROWS: ' + str(len(df.index)))
+	# print(df_test_preprocessed.columns)
+	
+	# pred = regressor_model.predict(df_test_preprocessed[features])
+	
+	# # Use exponential to convert the result
+	# pred_results = np.exp(pred)
+	
+	# # Create a dataframe with predictions
+	# df_result = pd.DataFrame({"num_orders" : pred_results})
+	
+	# # Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
+	# df_result.index = df_test_preprocessed.index
+	# df_result.reset_index(inplace=True)
+	
+	# print("RESULT: " + str(len(df_result)))
+
+	# # Generate a JSON with results
+	# result = df_result.to_json(orient='records')
+	
+	return content
 
 @app.route('/save', methods=['GET'])
 def save_model():
@@ -124,7 +152,7 @@ def save_model():
 @app.route('/train', methods=['POST'])
 def train():
 	
-	# Get data from the request
+	# Get center and meal from the request
 	content = request.json
 	
 	center_id = content['center_id']
@@ -156,8 +184,6 @@ def train():
 # 		'data' : content['center_id']
 # 	}
 	return jsonify(result)
-# api.add_resource(Test, '/my_custom_test')
-# api.add_resource(Predict, '/predict')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

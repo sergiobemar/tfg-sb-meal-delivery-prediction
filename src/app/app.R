@@ -222,7 +222,8 @@ server <- function(input, output, session) {
         string_train_log <- train_model(input$pred_center_id, input$pred_meal_id)
         
         # Get predictions using the API Post request
-        df_predictions <- get_predictions(df_list[2][[1]])
+        # df_predictions <- get_predictions(df_list[2][[1]])
+        df_predictions <- get_predictions2(input$pred_center_id, input$pred_meal_id)
         
         # Cast columns
         df_predictions$date <- df_predictions$date %>% as.Date()
