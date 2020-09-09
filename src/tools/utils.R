@@ -17,6 +17,20 @@ load_packages <- function(packages){
   invisible(lapply(packages, library, character.only = TRUE))
 }
 
+load_css <- function() {
+  tags$head(
+    tags$style(
+      HTML("
+        .main-header .logo {
+          font-family: 'Roboto'
+          font-weight: bold;
+          font-size: 16px;
+        }
+      ")
+    )
+  )
+}
+
 load_packages_shiny <- function() {
   
   packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'shinysky', 'httr')
