@@ -42,3 +42,11 @@ vignettes/*.pdf
 # Checkpoints
 .ipynb_checkpoints
 .pyc
+catboost_info/catboost_training.json
+src/model/__pycache__/xgboost_model.cpython-36.pyc
+catboost_info/learn/events.out.tfevents
+catboost_info/time_left.tsv
+catboost_info/learn_error.tsv
+src/model/__pycache__/xgboost_model.cpython-36.pyc
+src/__pycache__/__init__.cpython-36.pyc
+src/model/__pycache__/xgboost_model.cpython-36.pyc
