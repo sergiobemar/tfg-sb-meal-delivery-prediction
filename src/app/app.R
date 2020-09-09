@@ -167,8 +167,8 @@ ui <- dashboardPage(
                 fluidRow(
                     column(
                         width = 12,
-                        # plotlyOutput("predicted_orders_line_chart", height = '275px')
-                        textOutput('test_string')
+                        plotlyOutput("predicted_orders_line_chart", height = '275px')
+                        # textOutput('test_string')
                     )
                 )
             )
@@ -224,18 +224,18 @@ server <- function(input, output, session) {
         
         # Get predictions using the API Post request
         # df_predictions <- get_predictions(df_list[2][[1]])
-        # df_predictions <- get_predictions_2(input$pred_center_id, input$pred_meal_id)
+        df_predictions <- get_predictions_2(input$pred_center_id, input$pred_meal_id)
         
         # Cast columns
-        # df_predictions$date <- df_predictions$date %>% as.Date()
-        # df_predictions$num_orders <- df_predictions$num_orders %>% as.integer()
+        df_predictions$date <- df_predictions$date %>% as.Date()
+        df_predictions$num_orders <- df_predictions$num_orders %>% as.integer()
         
         # Joining with pred_test dataframe
-        # df_result <- df_list[2][[1]] %>% left_join(df_predictions, by = 'date')
+        df_result <- df_list[2][[1]] %>% left_join(df_predictions, by = 'date')
         
         
         
-        return(string_train_log$rmse)
+        return(df_result)
     })
     
     # Show Plotly pie chart of center types
@@ -302,7 +302,7 @@ server <- function(input, output, session) {
     
     # Show Plotly chart with total orders
     output$total_orders_chart <- renderPlotly({
-        show_plotly_general_orders(dash_orders_data())
+        # show_plotly_general_orders(dash_orders_data())
     })
     
     # Show total orders value box
