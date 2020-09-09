@@ -105,41 +105,41 @@ def predict2():
 	# Get center and meal from the request
 	content = request.json
 	
-	# center_id = content['center_id']
-	# meal_id = content['meal_id']
+	center_id = content['center_id']
+	meal_id = content['meal_id']
 	
-	# print("CENTER: " + str(center_id))
-	# print("MEAL: " + str(meal_id))
+	print("CENTER: " + str(center_id))
+	print("MEAL: " + str(meal_id))
 
-	# # Preprocess test dataframe
-	# df_train_preprocessed = preprocess_data(df_test, center_id, meal_id) 
+	# Preprocess test dataframe
+	df_train_preprocessed = preprocess_data(df_test, center_id, meal_id) 
 
-	# next_day = df_train_preprocessed.index.max().date() + timedelta(days=1)
+	next_day = df_train_preprocessed.index.max().date() + timedelta(days=1)
 
-	# df_test_preprocessed = preprocess_data(df_test, center_id, meal_id, next_day)
+	df_test_preprocessed = preprocess_data(df_test, center_id, meal_id, next_day)
 	
-	# # Print num rows
-	# print('NUM ROWS: ' + str(len(df.index)))
-	# print(df_test_preprocessed.columns)
+	# Print num rows
+	print('NUM ROWS: ' + str(len(df.index)))
+	print(df_test_preprocessed.columns)
 	
-	# pred = regressor_model.predict(df_test_preprocessed[features])
+	pred = regressor_model.predict(df_test_preprocessed[features])
 	
-	# # Use exponential to convert the result
-	# pred_results = np.exp(pred)
+	# Use exponential to convert the result
+	pred_results = np.exp(pred)
 	
-	# # Create a dataframe with predictions
-	# df_result = pd.DataFrame({"num_orders" : pred_results})
+	# Create a dataframe with predictions
+	df_result = pd.DataFrame({"num_orders" : pred_results})
 	
-	# # Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
-	# df_result.index = df_test_preprocessed.index
-	# df_result.reset_index(inplace=True)
+	# Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
+	df_result.index = df_test_preprocessed.index
+	df_result.reset_index(inplace=True)
 	
-	# print("RESULT: " + str(len(df_result)))
+	print("RESULT: " + str(len(df_result)))
 
-	# # Generate a JSON with results
-	# result = df_result.to_json(orient='records')
+	# Generate a JSON with results
+	result = df_result.to_json(orient='records')
 	
-	return content
+	return result
 
 @app.route('/save', methods=['GET'])
 def save_model():
