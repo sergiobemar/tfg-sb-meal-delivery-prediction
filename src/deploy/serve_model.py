@@ -14,7 +14,7 @@ from flask import request
 os.chdir('/home/jupyter/tfg-sb-meal-delivery-prediction/')
 
 from src.data.data_collect import read_test_data, read_train_data
-from src.model.xgboost_model import preprocess_data, train_xgboost_model
+from src.model.xgboost_model import get_predictions, preprocess_data, train_xgboost_model
 
 # Read datasets
 df_test = read_test_data()
@@ -22,7 +22,7 @@ df_train = read_train_data()
 
 # Load model
 regressor_model = joblib.load('./models/xgboost_model.pkl')
-features = joblib.load('./models/xgboost_features.pkl')
+# features = joblib.load('./models/xgboost_features.pkl')
 
 app = Flask(__name__)
 # api = Api(app)
@@ -100,44 +100,51 @@ def predict2():
 	
 	# Load model
 	regressor_model = joblib.load('./models/xgboost_model.pkl')
-	features = joblib.load('./models/xgboost_features.pkl')
+# 	features = joblib.load('./models/xgboost_features.pkl')
 
 	# Get center and meal from the request
 	content = request.json
 	
 	center_id = content['center_id']
 	meal_id = content['meal_id']
-	
+
 	print("CENTER: " + str(center_id))
 	print("MEAL: " + str(meal_id))
-
+	
 	# Preprocess test dataframe
-	df_train_preprocessed = preprocess_data(df_test, center_id, meal_id) 
+	df_train_preprocessed = preprocess_data(df_train, center_id, meal_id) 
 
 	next_day = df_train_preprocessed.index.max().date() + timedelta(days=1)
 
 	df_test_preprocessed = preprocess_data(df_test, center_id, meal_id, next_day)
 	
 	# Print num rows
-	print('NUM ROWS: ' + str(len(df.index)))
+	print('NUM ROWS: ' + str(len(df_test_preprocessed.index)))	
+	print('NEXT_DATE: ' + str(next_day))
 	print(df_test_preprocessed.columns)
 	
-	pred = regressor_model.predict(df_test_preprocessed[features])
+# 	pred = regressor_model.predict(df_test_preprocessed[features])
 	
-	# Use exponential to convert the result
-	pred_results = np.exp(pred)
+# 	# Use exponential to convert the result
+# 	pred_results = np.exp(pred)
 	
-	# Create a dataframe with predictions
-	df_result = pd.DataFrame({"num_orders" : pred_results})
+# 	# Create a dataframe with predictions
+# 	df_result = pd.DataFrame({"num_orders" : pred_results})
 	
-	# Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
-	df_result.index = df_test_preprocessed.index
+# 	# Assign index from source dataframe and, so that we're able to have another column with the date, index is reseted
+# 	df_result.index = df_test_preprocessed.index
+	print(df_test_preprocessed)
+	df_result = get_predictions(regressor_model, df_test_preprocessed, df_test_preprocessed.index)
 	df_result.reset_index(inplace=True)
+	df_result['date'] = df_result.date
 	
-	print("RESULT: " + str(len(df_result)))
+# 	for i in df_result.date:
+# 		print("FECHA: " + str(i))
 
 	# Generate a JSON with results
-	result = df_result.to_json(orient='records')
+	result = df_result.to_json(orient='records', date_format = 'iso')
+	
+	print(result)
 	
 	return result
 
@@ -145,7 +152,7 @@ def predict2():
 def save_model():
 	
 	joblib.dump(regressor_model, './models/xgboost_model.pkl')
-	joblib.dump(features, './models/xgboost_features.pkl')
+# 	joblib.dump(features, './models/xgboost_features.pkl')
 	
 	return {'response': 'Model saved done!'}
 
@@ -155,8 +162,8 @@ def train():
 	# Get center and meal from the request
 	content = request.json
 	
-	center_id = content['center_id']
-	meal_id = content['meal_id']
+	center_id = int(content['center_id'])
+	meal_id = int(content['meal_id'])
 	
 	print("CENTER: " + str(center_id))
 	print("MEAL: " + str(meal_id))
@@ -166,19 +173,23 @@ def train():
 	
 	select_cols = ['week', 'checkout_price', 'base_price', 'emailer_for_promotion', 'homepage_featured', 'num_orders', 'city_code', 'region_code', 'op_area', 'month', 'quarter']
 	
+	print("SIZE: " + str(len(df_train)))
+	
 	# Train the model
-	regressor_model, rmse = train_xgboost_model(df_preprocessed[select_cols])
+# 	regressor_model, rmse = train_xgboost_model(df_preprocessed[select_cols])
+# 	regressor_model, rmse = train_xgboost_model(df_preprocessed)
 
-	features = list(df_preprocessed[select_cols].drop(columns='num_orders').columns)
-
+# 	features = list(df_preprocessed[select_cols].drop(columns='num_orders').columns)
+	
 	# Save the model and features
-	joblib.dump(regressor_model, './models/xgboost_model.pkl')
-	joblib.dump(features, './models/xgboost_features.pkl')
+# 	joblib.dump(regressor_model, './models/xgboost_model.pkl')
+# 	joblib.dump(features, './models/xgboost_features.pkl')
 	
 	# Return dict results
 	result = {
-		'features' : features,
-		'rmse' : rmse
+# 		'features' : features,
+# 		'rmse' : rmse
+		'rmse' : str(len(df_preprocessed))
 	}
 # 	result = {
 # 		'data' : content['center_id']
