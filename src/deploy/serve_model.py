@@ -111,6 +111,10 @@ def predict2():
 	print("CENTER: " + str(center_id))
 	print("MEAL: " + str(meal_id))
 	
+# 	cond = np.where((df_train['center_id'] == center_id) & (df_train['meal_id'] == meal_id))
+	
+# 	print("DF_TRAIN: " + str(len(df_train.iloc[cond])))
+	
 	# Preprocess test dataframe
 	df_train_preprocessed = preprocess_data(df_train, center_id, meal_id) 
 
@@ -177,19 +181,19 @@ def train():
 	
 	# Train the model
 # 	regressor_model, rmse = train_xgboost_model(df_preprocessed[select_cols])
-# 	regressor_model, rmse = train_xgboost_model(df_preprocessed)
+	regressor_model, rmse = train_xgboost_model(df_preprocessed)
 
 # 	features = list(df_preprocessed[select_cols].drop(columns='num_orders').columns)
 	
 	# Save the model and features
-# 	joblib.dump(regressor_model, './models/xgboost_model.pkl')
+	joblib.dump(regressor_model, './models/xgboost_model.pkl')
 # 	joblib.dump(features, './models/xgboost_features.pkl')
 	
 	# Return dict results
 	result = {
 # 		'features' : features,
-# 		'rmse' : rmse
-		'rmse' : str(len(df_preprocessed))
+		'rmse' : rmse
+# 		'rmse' : str(len(df_preprocessed))
 	}
 # 	result = {
 # 		'data' : content['center_id']
@@ -197,4 +201,6 @@ def train():
 	return jsonify(result)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+	
+	# Run server
+	app.run(debug=True, host='0.0.0.0', port=5000)

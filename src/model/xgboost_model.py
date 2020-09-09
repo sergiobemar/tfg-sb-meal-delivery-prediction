@@ -17,12 +17,13 @@ def get_predictions(model, df, date_index):
 def preprocess_data(df, center_id, meal_id, start_date = '2017-01-01'):
 
 	# Select the center and meal
-	condition1 = df['center_id'] == center_id
-	condition2 = df['meal_id'] == meal_id
+	condition1 = df['center_id'] == int(center_id)
+	condition2 = df['meal_id'] == int(meal_id)
 
 	df_processed = df[condition1 & condition2]
 
 	print('DF_PROCESSED: ' + str(len(df_processed)))
+	
 	# Added date variables
 	last_weeks = len(df_processed)
 	df_processed.date = pd.date_range(start_date, periods=last_weeks, freq='W')
