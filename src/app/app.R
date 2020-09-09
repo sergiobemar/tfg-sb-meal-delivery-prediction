@@ -167,7 +167,8 @@ ui <- dashboardPage(
                 fluidRow(
                     column(
                         width = 12,
-                        plotlyOutput("predicted_orders_line_chart", height = '275px')
+                        # plotlyOutput("predicted_orders_line_chart", height = '275px')
+                        textOutput('test_string')
                     )
                 )
             )
@@ -216,23 +217,25 @@ server <- function(input, output, session) {
     df_predict <- eventReactive(input$pred_btn_prediction, {
         
         # Get data to predict the number of orders from center_id and meal_id
-        df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id)
+        # df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id)
         
         # Train the model
         string_train_log <- train_model(input$pred_center_id, input$pred_meal_id)
         
         # Get predictions using the API Post request
         # df_predictions <- get_predictions(df_list[2][[1]])
-        df_predictions <- get_predictions2(input$pred_center_id, input$pred_meal_id)
+        # df_predictions <- get_predictions_2(input$pred_center_id, input$pred_meal_id)
         
         # Cast columns
-        df_predictions$date <- df_predictions$date %>% as.Date()
-        df_predictions$num_orders <- df_predictions$num_orders %>% as.integer()
+        # df_predictions$date <- df_predictions$date %>% as.Date()
+        # df_predictions$num_orders <- df_predictions$num_orders %>% as.integer()
         
         # Joining with pred_test dataframe
-        df_result <- df_pred_test %>% left_join(df_predictions, by = 'date')
+        # df_result <- df_list[2][[1]] %>% left_join(df_predictions, by = 'date')
         
-        return(df_result)
+        
+        
+        return(string_train_log$rmse)
     })
     
     # Show Plotly pie chart of center types
@@ -316,6 +319,10 @@ server <- function(input, output, session) {
             'Número pedidos',
             icon = icon("shopping-cart", lib = "glyphicon"), color = 'blue'
         )
+    })
+    
+    output$test_string <- renderText({
+        df_predict()
     })
 }
 
