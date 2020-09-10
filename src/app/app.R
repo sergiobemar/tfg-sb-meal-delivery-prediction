@@ -1,3 +1,6 @@
+# Clear workspace
+rm(list = ls())
+
 # Set working directory
 setwd('../../')
 
@@ -15,9 +18,10 @@ get_shiny_data()
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
     dashboardHeader(
-        title = 'Pedidos'
+        title = 'PLATAFORMA PEDIDOS'
     ),
     dashboardSidebar(
+        load_css(),
         sidebarMenu(
             menuItem("Dashboard", tabName = "tab_dashboard", icon = icon("dashboard")),
             menuItem("Previsión", tabName = "tab_predict", icon = icon("th"))
@@ -42,10 +46,10 @@ ui <- dashboardPage(
                                 dateRangeInput(
                                     inputId = 'dash_date_filter',
                                     label = 'Fechas pedidos',
-                                    start = df_orders$date %>% max() -365,
-                                    end = df_orders$date %>% max(),
-                                    min = df_orders$date %>% min(),
-                                    max = df_orders$date %>% max(),
+                                    start = df_orders_set_up$date %>% max() -365,
+                                    end = df_orders_set_up$date %>% max(),
+                                    min = df_orders_set_up$date %>% min(),
+                                    max = df_orders_set_up$date %>% max(),
                                     weekstart = 1,
                                     language = 'es'
                                 ),
@@ -101,6 +105,10 @@ ui <- dashboardPage(
                         )
                     )
                 ),
+                # Insert busy indicator icon and text
+                shinysky::busyIndicator("Calculando..."),
+                
+                # Show value box outputs
                 fluidRow(
                     valueBoxOutput("show_total_orders_value_box"),
                     valueBoxOutput("show_sales_value_box"),
@@ -157,18 +165,39 @@ ui <- dashboardPage(
                         actionButton(
                             inputId = 'pred_btn_prediction',
                             label = 'Previsión'
+                        ),
+                        actionButton(inputId = 'pred_send_alert', 'Enviar alerta')
+                    ),
+                    box(
+                        title = 'INFO SELECCIÓN',
+                        solidHeader = TRUE, 
+                        status = "info",
+                        box(
+                            title = 'Info centro',
+                            uiOutput("pred_get_center_info")
+                        ),
+                        box(
+                            title = 'Info comida',
+                            uiOutput("pred_get_meal_info")
                         )
                     )
                 ),
                 # Insert busy indicator icon and text
                 shinysky::busyIndicator("Calculando..."),
                 
+                # Value box
+                fluidRow(
+                    valueBoxOutput("pred_show_total_orders"),
+                    valueBoxOutput("pred_show_turnover"),
+                    valueBoxOutput("pred_show_error"),
+                    valueBoxOutput("pred_show_progression")
+                ),
+                
                 # Charts
                 fluidRow(
                     column(
                         width = 12,
                         plotlyOutput("predicted_orders_line_chart", height = '275px')
-                        # textOutput('test_string')
                     )
                 )
             )
@@ -217,7 +246,7 @@ server <- function(input, output, session) {
     df_predict <- eventReactive(input$pred_btn_prediction, {
         
         # Get data to predict the number of orders from center_id and meal_id
-        # df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id)
+        df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id) 
         
         # Train the model
         string_train_log <- train_model(input$pred_center_id, input$pred_meal_id)
@@ -233,9 +262,19 @@ server <- function(input, output, session) {
         # Joining with pred_test dataframe
         df_result <- df_list[2][[1]] %>% left_join(df_predictions, by = 'date')
         
-        
-        
-        return(df_result)
+        return(list(df_list[1][[1]], df_result, string_train_log$rmse))
+    })
+    
+    # PREDICTION: Get input$center_id by reactive method
+    get_pred_center_id_info <- reactive({
+        df_center %>% 
+            filter(center_id == input$pred_center_id)
+    })
+    
+    # PREDICTION: Get input$meal_id by reactive method
+    get_pred_meal_id_info <- reactive({
+        df_meal %>% 
+            filter(meal_id == input$pred_meal_id)
     })
     
     # Show Plotly pie chart of center types
@@ -253,9 +292,149 @@ server <- function(input, output, session) {
         get_orders_table(dash_orders_data())
     })
     
-    # When predictions are calculated, it's showed a Plotly chart for predicted orders
+    # PREDICTION: Get info of the center choosen
+    output$pred_get_center_info <- renderUI({
+        
+        # Region
+        region <- get_pred_center_id_info() %>%
+            select(region_code) %>%
+            pull()
+        
+        # Type
+        center_type <- get_pred_center_id_info() %>%
+            select(center_type) %>%
+            pull()
+        
+        div(
+            style = "text-align:center",
+            p(paste0('REGIÓN: ', region)),
+            p(paste0('TIPOLOGÍA: ', center_type))
+        )
+    })
+    
+    # PREDICTION: Get info of the center choosen
+    output$pred_get_meal_info <- renderUI({
+        
+        # Cuisine
+        cuisine <- get_pred_meal_id_info() %>%
+            select(cuisine) %>%
+            pull()
+
+        # Category
+        category <- get_pred_meal_id_info() %>%
+            select(category) %>%
+            pull()
+        
+        div(
+            style = "text-align:center",
+            p(paste0('COCINA: ', cuisine)),
+            p(paste0('CATEGORÍA: ', category))
+        )
+    })
+    
+    # PREDICTION: When predictions are calculated, it's showed a Plotly chart for predicted orders
     output$predicted_orders_line_chart <- renderPlotly({
-        show_plotly_prediction_line_chart(df_pred_orders, df_predict())
+        show_plotly_prediction_line_chart(df_predict()[1][[1]], df_predict()[2][[1]])
+    })
+    
+    # PREDICTION: Value box to show RMSE that model predicts
+    output$pred_show_error <- renderValueBox({
+        value <- df_predict()[3][[1]]
+        
+        valueBox(
+            value = format(
+                round(value, 4),
+                scientific = FALSE, 
+                big.mark = ".", 
+                decimal.mark = ","
+            ),
+            'Error total estimado',
+            icon = icon("exclamation-circle"), color = 'purple'
+        )
+    })
+    
+    # PREDICTION: Value box to show the progression from the last period
+    output$pred_show_progression <- renderValueBox({
+        
+        # Get the prectied num orders
+        predicted_num_orders <- df_predict()[2][[1]] %>% 
+            summarise(
+                total_orders = sum(base_price, na.rm = T)
+            ) %>% 
+            pull()
+        
+        # Get the number of orders from the last 10 weeks
+        actual_num_orders <- df_predict()[1][[1]] %>% 
+            head(df_predict()[2][[1]] %>% nrow()) %>%
+            summarise(
+                total_orders = sum(base_price, na.rm = T)
+            ) %>% 
+            pull()
+        
+        # Calculate progression
+        value <- ((predicted_num_orders / actual_num_orders) - 1) * 100
+        
+        # Change color 
+        if (value > 0) {
+            color <- "olive"
+        } else {
+            color <- "red"
+        } 
+        
+        valueBox(
+            value = paste(
+                format(
+                    round(value, 2),
+                    scientific = FALSE, 
+                    big.mark = ".", 
+                    decimal.mark = ","
+                ),
+                "%",
+                sep = " "
+            ),
+            'Progresión estimada frente al mismo periodo',
+            icon = icon("chart-line"), color = color
+        )
+    })
+    
+    # PREDICTION: Value box to show total orders that model predicts
+    output$pred_show_total_orders <- renderValueBox({
+        value <- df_predict()[2][[1]] %>% 
+            summarise(total_orders = sum(base_price, na.rm = T)) %>% 
+            pull()
+        
+        valueBox(
+            value = format(
+                round(value, 0),
+                scientific = FALSE, 
+                big.mark = ".", 
+                decimal.mark = ","
+            ),
+            'Pedidos totales estimados',
+            icon = icon("shopping-cart", lib = "glyphicon"), color = 'blue'
+        )
+    })
+    
+    # PREDICTION: Value box to show total turnover that model predicts
+    output$pred_show_turnover <- renderValueBox({
+        value <- df_predict()[2][[1]] %>% 
+            summarise(total_orders = sum(num_orders, na.rm = T)) %>% 
+            pull()
+        
+        valueBox(
+            value = paste(
+                format(
+                    round(value, 0),
+                    scientific = FALSE, 
+                    big.mark = ".", 
+                    decimal.mark = ","
+                ),
+                "€",
+                sep = " "
+            ),
+            'Volumen de ventas estimado',
+            icon = icon("credit-card"), color = 'orange'
+        )
     })
     
     # Show average discount value box
@@ -287,7 +466,7 @@ server <- function(input, output, session) {
         valueBox(
             value = paste(
                 format(
-                    value,
+                    round(value, 0),
                     scientific = FALSE, 
                     big.mark = ".", 
                     decimal.mark = ","
@@ -302,7 +481,7 @@ server <- function(input, output, session) {
     
     # Show Plotly chart with total orders
     output$total_orders_chart <- renderPlotly({
-        # show_plotly_general_orders(dash_orders_data())
+        show_plotly_general_orders(dash_orders_data())
     })
     
     # Show total orders value box
