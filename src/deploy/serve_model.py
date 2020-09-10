@@ -99,7 +99,8 @@ def predict():
 def predict2():
 	
 	# Load model
-	regressor_model = joblib.load('./models/xgboost_model.pkl')
+	regressor_model = joblib.load(os.getcwd() + '/models/xgboost_model.pkl')
+# 	regressor_model = joblib.load('./models/xgboost_model.pkl')
 # 	features = joblib.load('./models/xgboost_features.pkl')
 
 	# Get center and meal from the request
@@ -186,7 +187,8 @@ def train():
 # 	features = list(df_preprocessed[select_cols].drop(columns='num_orders').columns)
 	
 	# Save the model and features
-	joblib.dump(regressor_model, './models/xgboost_model.pkl')
+	joblib.dump(regressor_model, os.getcwd() + '/models/xgboost_model.pkl')
+# 	joblib.dump(regressor_model, './models/xgboost_model.pkl')
 # 	joblib.dump(features, './models/xgboost_features.pkl')
 	
 	# Return dict results
