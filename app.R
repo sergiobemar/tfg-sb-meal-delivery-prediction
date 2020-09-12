@@ -1,9 +1,6 @@
 # Clear workspace
 rm(list = ls())
 
-# Set working directory
-setwd('../../')
-
 source('./src/tools/utils.R')
 
 # Config
