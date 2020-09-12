@@ -199,6 +199,13 @@ ui <- dashboardPage(
                         width = 12,
                         plotlyOutput("predicted_orders_line_chart", height = '275px')
                     )
+                ),
+                
+                # BS Modal alert
+                bsModal("modal_alert", "Enviar alerta", "pred_send_alert",
+                    HTML(paste0("Deseas enviar una alerta a los centros de la siguiente tipología:", textOutput("pred_get_center_type"))),
+                    br(),
+                    actionButton("pred_btn_yes", "Enviar")
                 )
             )
         )
@@ -277,6 +284,79 @@ server <- function(input, output, session) {
             filter(meal_id == input$pred_meal_id)
     })
     
+    # PREDICTION: Observe events for buttons of Alerts BS Modal
+    observeEvent(input$pred_btn_yes, {
+        
+        toggleModal(session, "modal_alert", toggle = "close")
+        
+        # Check if the prediction button was selected before
+        if (input$pred_btn_prediction == 0) {
+            result_reason <- 'error_0'
+        } else {
+            # Calculate progression
+            ## Get the prectied num orders
+            predicted_num_orders <- df_predict()[2][[1]] %>% 
+                summarise(
+                    total_orders = sum(base_price, na.rm = T)
+                ) %>% 
+                pull()
+            
+            ## Get the number of orders from the last 10 weeks
+            actual_num_orders <- df_predict()[1][[1]] %>% 
+                head(df_predict()[2][[1]] %>% nrow()) %>%
+                summarise(
+                    total_orders = sum(base_price, na.rm = T)
+                ) %>% 
+                pull()
+            
+            ## Calculate progression
+            predicted_progression <- ((predicted_num_orders / actual_num_orders) - 1) * 100
+            
+            # Round values
+            predicted_num_orders <- predicted_num_orders %>% round(0)
+            predicted_progression <- predicted_progression %>% round(2)
+            
+            # Send alert
+            result <- send_alert(input$pred_center_id, predicted_num_orders, predicted_progression)
+            
+            # If API response was error
+            print(result)
+            if(http_error(result)) {
+                result_reason <- 'error_1'    
+            } else {
+                result_reason <- 'ok'
+            }
+        }
+        
+        # Check if there was any errors
+        if (result_reason == 'ok') {
+            title <- 'Alerta enviada'
+            text <- 'La alerta se envío correctamente al canal de Slack.'
+        } else if (result_reason == 'error_0') {
+            title <- 'ERROR ENVÍO ALERTA'
+            text <- 'No se ha generado ninguna predicción aún.'
+        } else {
+            title <- 'Error envío alerta'
+            text <- 'Hubo un error al enviar la alerta al canal de Slack.'
+            
+        }
+
+        # Show modal
+        showModal(
+            modalDialog(
+                title = title,
+                if (result_reason == 'ok')
+                    div(tags$b(text))
+                else
+                    div(span(text, style = "color: red;")),
+                footer = tagList(
+                    modalButton("Cancel")
+                ),
+                easyClose = TRUE
+            )
+        )
+    })
+    
     # Show Plotly pie chart of center types
     output$center_type_pie_chart <- renderPlotly({
         show_plotly_center_type_pie(dash_orders_data())
@@ -310,6 +390,16 @@ server <- function(input, output, session) {
             p(paste0('REGIÓN: ', region)),
             p(paste0('TIPOLOGÍA: ', center_type))
         )
+    })
+    
+    # PREDICTION: Get the type of the center choosen in string format
+    output$pred_get_center_type <- renderText({
+        # Center type
+        center_type <- get_pred_center_id_info() %>%
+            select(center_type) %>%
+            pull()
+        
+        center_type
     })
     
     # PREDICTION: Get info of the center choosen
@@ -396,6 +486,22 @@ server <- function(input, output, session) {
             icon = icon("chart-line"), color = color
         )
     })
+    
+    # PREDICTION: Show bsModal when click on send the alert, in order to capture if everything went ok
+    # reactive_alert_response <- reactive({
+    #     alert_response()
+    # })
+    # output$pred_show_sent_alert_modal <- renderUI({
+    #     if (reactive_alert_response()) {
+    #         title <- 'ALERTA ENVIADA'
+    #         text <- 'La alerta se envío correctamente al canal de Slack.'
+    #     } else {
+    #         title <- 'ERROR ENVÍO ALERTA'
+    #         text <- 'Hubo un error al enviar la alerta al canal de slack'
+    #     }
+    #     
+    #     bsModal("modal_sent_alert", title, "pred_send_alert", size = "small", text)
+    # })
     
     # PREDICTION: Value box to show total orders that model predicts
     output$pred_show_total_orders <- renderValueBox({

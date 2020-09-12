@@ -1,7 +1,10 @@
 config_app <- function() {
   
   # Get configuration vars from JSON file
-  config_file <<- jsonlite::fromJSON("./references/config_shiny_app.json")
+  config_file <<- jsonlite::fromJSON("./config/config_shiny_app.json")
+  
+  # Read JSON alerts file
+  alerts_file <<- jsonlite::fromJSON("./config/alerts.json")
   
   options(shiny.sanitize.errors = TRUE)
 }
@@ -33,7 +36,7 @@ load_css <- function() {
 
 load_packages_shiny <- function() {
   
-  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'shinysky', 'httr')
+  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'shinysky', 'httr', 'shinyBS')
   
   load_packages(packages)
   
