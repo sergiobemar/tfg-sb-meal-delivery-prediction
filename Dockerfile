@@ -1,45 +1,36 @@
-# get shiny serves plus tidyverse packages image
-FROM rocker/shiny-verse:latest
+# Base image https://hub.docker.com/u/rocker/
+FROM rocker/shiny:latest
 
 # system libraries of general use
-RUN apt-get update && apt-get install -y \
-    sudo \
-    pandoc \
-    pandoc-citeproc \
-    libcurl4-gnutls-dev \
+## install debian packages
+RUN apt-get update -qq && apt-get -y --no-install-recommends install \
+    libxml2-dev \
     libcairo2-dev \
-    libxt-dev \
-    libssl-dev \
+    libsqlite3-dev \
+    libmariadbd-dev \
+    libpq-dev \
     libssh2-1-dev \
-    gdebi-core
+    unixodbc-dev \
+    libcurl4-openssl-dev \
+    libssl-dev
 
-# install R packages required 
-# (change it dependeing on the packages you need)
-RUN R -e "install.packages('shiny', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('shinydashboard', repos='http://cran.rstudio.com/')"
-RUN R -e "devtools::install_github('andrewsali/shinycssloaders')"
-RUN R -e "install.packages('lubridate', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('magrittr', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('glue', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('DT', repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('plotly', repos='http://cran.rstudio.com/')"
+## update system libraries
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean
 
-# install Shiny server  
-RUN wget --no-verbose https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.14.948-amd64.deb
-RUN sudo dpkg -i shiny-server-1.5.14.948-amd64.deb
+# copy necessary files
+## app folder
+COPY /app ./app
+## renv.lock file
+COPY /app/renv.lock ./renv.lock
 
-# copy the app to the image
-COPY tfg-sb-meal-delivery-prediction.Rproj /srv/shiny-server/
-COPY app.R /srv/shiny-server/
-COPY src /srv/shiny-server/src
-COPY data /srv/shiny-server/data
-COPY config /srv/shiny-server/config
+# install renv & restore packages
+RUN Rscript -e 'install.packages("renv")'
+RUN Rscript -e 'renv::restore()'
 
-# select port
+# expose port
 EXPOSE 3838
 
-# allow permission
-RUN sudo chown -R shiny:shiny /srv/shiny-server
-
-# run app
-CMD ["/usr/bin/shiny-server.sh"]
+# run app on container start
+CMD ["R", "-e", "shiny::runApp('/app', host = '0.0.0.0', port = 3838)"]
