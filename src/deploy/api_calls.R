@@ -54,7 +54,7 @@ send_alert <- function(center, value_orders, value_progression) {
     center,
     ", lo que supone una progresión del ",
     value_progression,
-    "%"
+    "% respecto al periodo anterior."
   )
   
   # Set values for the message
