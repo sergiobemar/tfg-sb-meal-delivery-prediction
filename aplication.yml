@@ -1,6 +1,0 @@
-specs:
-  - id: shiny-app
-    display-name: Euler's number
-    container-cmd: ["R", "-e", "shiny::runApp('/root/euler')"]
-    container-image: shiny-app
-    access-groups: sergiobenito
