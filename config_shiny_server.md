@@ -56,6 +56,8 @@ id -nG
 
 ## Step 3: R Installation
 
+In order to test the functionality before creating the container it's possible to test if the app runs using R, so the following code correspond with the commands which R can be installed.
+
 ```
 # Add GPG Key
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
@@ -73,6 +75,8 @@ sudo apt install r-base
 sudo -i R
 ```
 
+Also, for RShiny Sever installation, here are the steps:
+
 ```
 sudo su - \
 -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
@@ -84,35 +88,50 @@ sudo gdebi shiny-server-1.5.14.948-amd64.deb
 
 
 
-## Step 4:
+## Step 4: Docker
 
 Create a *Dockerfile* in current directory (where it's located *app.R*) with the following code:
 
 ```
-FROM r-base:latest
+FROM openanalytics/r-base
+
+LABEL maintainer "Tobias Verbeke <tobias.verbeke@openanalytics.eu>"
+
+# system libraries of general use
 RUN apt-get update && apt-get install -y \
     sudo \
-    gdebi-core \
     pandoc \
     pandoc-citeproc \
     libcurl4-gnutls-dev \
+    libcairo2-dev \
     libxt-dev \
     libssl-dev \
-    libxml2 \
-    libxml2-dev
-# Instalacion de shiny server
-RUN wget --no-verbose https://s3.amazonaws.com/rstudio-shiny-server-os-build/ubuntu-12.04/x86_64/VERSION -O "version.txt" && \
-    VERSION=$(cat version.txt)  && \
-    wget --no-verbose "https://s3.amazonaws.com/rstudio-shiny-server-os-build/ubuntu-12.04/x86_64/shiny-server-$VERSION-amd64.deb" -O ss-latest.deb && \
-    gdebi -n ss-latest.deb && \
-    rm -f version.txt ss-latest.deb
-# Instalacion de los paquetes necesarios
-RUN R -e "install.packages(c('shiny'), repos='http://cran.rstudio.com/')"
-COPY shiny-server.conf  /etc/shiny-server/shiny-server.conf
-COPY /myapp /srv/shiny-server/
-COPY shiny-server.sh /usr/bin/shiny-server.sh
-EXPOSE 80
-CMD ["/usr/bin/shiny-server.sh"]
+    libssh2-1-dev \
+    libssl1.0.0
+
+# system library dependency for the euler app
+RUN apt-get update && apt-get install -y \
+    libmpfr-dev
+
+# basic shiny functionality
+RUN R -e "install.packages(c('shiny', 'rmarkdown', 'remotes'), repos='https://cloud.r-project.org/')"
+
+# install dependencies of the app
+RUN R -e "install.packages(c('dplyr', 'data.table', 'plotly', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'httr', 'shinyBS'), repos='https://cloud.r-project.org/')"
+
+# install shinysky
+RUN R -e "remotes::install_github('AnalytixWare/ShinySky')"
+
+# copy the app to the image
+RUN mkdir /root/app
+COPY app /root/app
+
+COPY Rprofile.site /usr/lib/R/etc/
+
+EXPOSE 3838
+
+CMD ["R", "-e", "shiny::runApp('/root/app')"]
+
 ```
 
 ## Step 5: Create Shiny Server config file and executable
@@ -142,11 +161,28 @@ exec shiny-server >> /var/log/shiny-server.log 2>&1
 
 ## Step 6: Build Docker image
 
-Now, from the main path, where is *Dockerfile*, you can run the following command in order to build the image of Shiny Server. The name *shiny_app* can be exchanged for another of our choice.
+Now, from the main path, where is *Dockerfile*, you can run the following command in order to build the image of Shiny Server. The name *shiny-app* can be exchanged for another of our choice.
 
 ```
-docker build -t shiny_app .
+sudo docker build -t shiny-app .
 ```
+
+Then, when the image is built, you can run now the docker container to deploy the ShinyApp.
+
+```
+sudo docker run -it -p 80:3838 shiny-app
+```
+
+With this command, you are setting that it was interactive and allocated a pseudo-TTY with ```-it``` and the port redirection ```-p [HOST PORT]:[CONTAINER PORT]```. At the end, it's set the name of the image, in this case *shiny-app*.
 
 # Useful links
++ [Crear imagen Docker con Shiny Server](https://www.analyticslane.com/2020/07/10/crear-imagen-docker-con-shiny-server/)
++ [Deploying an R Shiny App With Docker](https://www.r-bloggers.com/deploying-an-r-shiny-app-with-docker/)
++ [Dockerize a ShinyApp](https://juanitorduz.github.io/dockerize-a-shinyapp/)
++ [Download Shiny Server for Ubuntu 16.04 or later](https://rstudio.com/products/shiny/download-server/ubuntu/)
++ [GitHub - ShinyProxy Configuration Examples](https://github.com/openanalytics/shinyproxy-config-examples)
++ [GitHub - ShinyProxy Template](https://github.com/openanalytics/shinyproxy-template)
++ [How To Dockerize ShinyApps](https://www.statworx.com/de/blog/how-to-dockerize-shinyapps/)
 + [How To Install R on Ubuntu 18.04 Quickstart](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04-quickstart)
++ [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html)
++ [Shinyproxy - Deploying Apps](https://www.shinyproxy.io/deploying-apps/)
