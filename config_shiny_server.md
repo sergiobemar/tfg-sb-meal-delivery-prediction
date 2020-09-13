@@ -54,7 +54,37 @@ su - ${USER}
 id -nG
 ```
 
-## Step 3:
+## Step 3: R Installation
+
+```
+# Add GPG Key
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+
+# Add the R Repository
+sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/'
+
+# Update Package Lists
+sudo apt update
+
+# Install R
+sudo apt install r-base
+
+# Test install
+sudo -i R
+```
+
+```
+sudo su - \
+-c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
+
+sudo apt-get install gdebi-core
+wget https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.14.948-amd64.deb
+sudo gdebi shiny-server-1.5.14.948-amd64.deb
+```
+
+
+
+## Step 4:
 
 Create a *Dockerfile* in current directory (where it's located *app.R*) with the following code:
 
@@ -85,7 +115,7 @@ EXPOSE 80
 CMD ["/usr/bin/shiny-server.sh"]
 ```
 
-## Step 4: Create Shiny Server config file and executable
+## Step 5: Create Shiny Server config file and executable
 
 The ```shiny-server.conf``` is neccessary because it's set the user who run the server. In this case, you would have to change *shiny* user by yours.
 
@@ -109,3 +139,14 @@ mkdir -p /var/log/shiny-server
 chown shiny.shiny /var/log/shiny-server
 exec shiny-server >> /var/log/shiny-server.log 2>&1
 ```
+
+## Step 6: Build Docker image
+
+Now, from the main path, where is *Dockerfile*, you can run the following command in order to build the image of Shiny Server. The name *shiny_app* can be exchanged for another of our choice.
+
+```
+docker build -t shiny_app .
+```
+
+# Useful links
++ [How To Install R on Ubuntu 18.04 Quickstart](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04-quickstart)
