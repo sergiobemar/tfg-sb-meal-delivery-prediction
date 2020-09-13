@@ -45,3 +45,4 @@ vignettes/*.pdf
 catboost_info/
 src/__pycache__/*
 src/model/__pycache__/*
+app/config/credentials_github.json
