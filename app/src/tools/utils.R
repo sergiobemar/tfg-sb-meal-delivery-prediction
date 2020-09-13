@@ -13,7 +13,7 @@ load_packages <- function(packages){
   # Install packages not yet installed
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
-    install.packages(packages[!installed_packages])
+    install.packages(packages[!installed_packages], repo="http://cran.rstudio.com/")
   }
   
   # Packages loading
@@ -36,9 +36,25 @@ load_css <- function() {
 
 load_packages_shiny <- function() {
   
-  packages <- c('dplyr', 'data.table', 'plotly', 'kableExtra', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'shinysky', 'httr', 'shinyBS')
+  packages <- c('dplyr', 'data.table', 'plotly', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'httr', 'shinyBS')
   
   load_packages(packages)
+
+  # https://community.rstudio.com/t/shinysky-package-is-not-available-for-r-version-3-5-2/27497/2
+  if (!('shinysky' %in% rownames(installed.packages()))) {
+    devtools::install_github("AnalytixWare/ShinySky")
+    library(shinysky)
+  } else {
+    library(shinysky)
+  }
+
+  if (!('kableExtra' %in% rownames(installed.packages()))) {
+    install.packages("kableExtra", dependencies = TRUE)
+    library(kableExtra)
+  } else {
+    library(kableExtra)
+  }
+
   
   source('./src/data/data_collect.R')
   source('./src/shiny/dashboard_functions.R')
