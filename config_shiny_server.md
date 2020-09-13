@@ -86,8 +86,6 @@ wget https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.14.948-a
 sudo gdebi shiny-server-1.5.14.948-amd64.deb
 ```
 
-
-
 ## Step 4: Docker
 
 Create a *Dockerfile* in current directory (where it's located *app.R*) with the following code:
@@ -134,32 +132,7 @@ CMD ["R", "-e", "shiny::runApp('/root/app')"]
 
 ```
 
-## Step 5: Create Shiny Server config file and executable
-
-The ```shiny-server.conf``` is neccessary because it's set the user who run the server. In this case, you would have to change *shiny* user by yours.
-
-```
-run_as shiny;
-server {
-  listen 80;
-  location / {
-    site_dir /srv/shiny-server;
-    log_dir /var/log/shiny-server;
-    directory_index on;
-  }
-}
-```
-
-And then, the another file is ```shiny-server.sh``` which have the commands to run the server. The different from the .conf file is while it has the configuration for the server, the other runs it.
-
-```
-#!/bin/sh
-mkdir -p /var/log/shiny-server
-chown shiny.shiny /var/log/shiny-server
-exec shiny-server >> /var/log/shiny-server.log 2>&1
-```
-
-## Step 6: Build Docker image
+## Step 5: Build Docker image
 
 Now, from the main path, where is *Dockerfile*, you can run the following command in order to build the image of Shiny Server. The name *shiny-app* can be exchanged for another of our choice.
 
