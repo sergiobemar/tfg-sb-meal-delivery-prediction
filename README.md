@@ -36,7 +36,7 @@ Generated using the following command ```tree . -d```
 
 ## How to run
 
-To run this Shiny App it's neccesary to have installed Docker, and then you can deploy the app. Besides, you can test it using R. For a detailed information [you can visit this guide](https://github.com/sergiobemar/tfg-sb-meal-delivery-prediction) created in order to orient the developer in the deployment.
+To run this Shiny App it's neccesary to have installed Docker, and then you can deploy the app. Besides, you can test it using R. For a detailed information [you can visit this guide](https://github.com/sergiobemar/tfg-sb-meal-delivery-prediction/blob/master/config_shiny_server.md) created in order to orient the developer in the deployment.
 
 At first, if you don't have a machine with a static IP, you have to set this in the config file ```./app/config/config_shiny_app.json``` before being dockerize.
 
@@ -53,3 +53,15 @@ If you want to stop the container, you have to see its ID and then stop it
 docker ps
 docker stop [CONTAINER ID]
 ```
+
+# Useful links
++ [Crear imagen Docker con Shiny Server](https://www.analyticslane.com/2020/07/10/crear-imagen-docker-con-shiny-server/)
++ [Deploying an R Shiny App With Docker](https://www.r-bloggers.com/deploying-an-r-shiny-app-with-docker/)
++ [Dockerize a ShinyApp](https://juanitorduz.github.io/dockerize-a-shinyapp/)
++ [Download Shiny Server for Ubuntu 16.04 or later](https://rstudio.com/products/shiny/download-server/ubuntu/)
++ [GitHub - ShinyProxy Configuration Examples](https://github.com/openanalytics/shinyproxy-config-examples)
++ [GitHub - ShinyProxy Template](https://github.com/openanalytics/shinyproxy-template)
++ [How To Dockerize ShinyApps](https://www.statworx.com/de/blog/how-to-dockerize-shinyapps/)
++ [How To Install R on Ubuntu 18.04 Quickstart](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04-quickstart)
++ [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html)
++ [Shinyproxy - Deploying Apps](https://www.shinyproxy.io/deploying-apps/)
