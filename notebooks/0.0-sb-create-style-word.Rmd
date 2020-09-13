@@ -1,9 +1,0 @@
----
-  output:
-    word_document:
-      reference_docx: styles.docx
----
-  
-  ```{r}
-knitr::kable(cars)
-```

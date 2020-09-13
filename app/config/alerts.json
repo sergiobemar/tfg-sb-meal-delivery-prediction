@@ -1,0 +1,14 @@
+[
+  {
+    "name" : "TYPE_A",
+    "uri" : "https://hooks.slack.com/services/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"
+  },
+  {
+    "name" : "TYPE_B",
+    "uri" : "https://hooks.slack.com/services/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"
+  },
+  {
+    "name" : "TYPE_C",
+    "uri" : "https://hooks.slack.com/services/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"
+  }
+]
