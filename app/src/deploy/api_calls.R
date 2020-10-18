@@ -20,20 +20,19 @@ get_predictions <- function(df) {
 get_predictions_2 <- function(center_id, meal_id) {
   
   # Build the content with center_id and meal_id
-  request_body_content <- list("center_id" = center_id, "meal_id" = meal_id) %>% 
-    toJSON(auto_unbox = TRUE, pretty = TRUE)
+  request_parameters_content <- list("center_id" = center_id, "meal_id" = meal_id)
   
-  print(request_body_content)
+  print(request_parameters_content)
   
   # Calling the API
-  result <- POST(
-    paste0(config_file$URI, "/predict2"),
-    body = request_body_content,
+  result <- GET(
+    paste0(config_file$URI, "/predict"),
+    query = request_parameters_content,
     add_headers(.headers = c("Content-Type"="application/json"))
   )
   
   # Get result
-  output <- content(result, as = 'text') %>% fromJSON() %>% as.data.table()
+  output <- content(result, as = 'parsed') %>% fromJSON() %>% as.data.table()
   
   return(output)
 }
