@@ -3,14 +3,15 @@ rm(list = ls())
 
 source('./src/tools/utils.R')
 
-# Config
-config_app()
-
 # Load packages
 load_packages_shiny()
 
+# Config
+config_app()
+
 # Get data
-get_shiny_data()
+# get_shiny_data()
+get_shiny_data_ch()
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
