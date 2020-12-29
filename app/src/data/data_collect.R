@@ -1,5 +1,13 @@
 source('src/features/preprocessing.R')
 
+write_csv_from_table_clickhouse <- function(table_name, output_filename) {
+  query = paste0("SELECT * FROM raw.", table_name)
+  # output_path <- paste0(path, "meal.csv")
+  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_filename, quote = F, row.names = F)
+  
+  print(paste0("OK Write csv ", output_filename, " from raw.", table_name))
+}
+
 get_data_clickhouse <- function() {
   
   # Create connection to Clickhouse
@@ -20,24 +28,24 @@ get_data_clickhouse <- function() {
   
   # Get raw data
   ## Meal
-  query = "SELECT * FROM raw.meal"
-  output_path <- paste0(path, "meal.csv")
-  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
+  table_name <- "meal"
+  output_path <- paste0(path, table_name, ".csv")
+  write_csv_from_table_clickhouse(table_name = table_name, output_path)
   
   ## Center
-  query = "SELECT * FROM raw.center"
-  output_path <- paste0(path, "center.csv")
-  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
+  table_name <- "center"
+  output_path <- paste0(path, table_name, ".csv")
+  write_csv_from_table_clickhouse(table_name = table_name, output_path)
+  
+  ## Test
+  table_name <- "test"
+  output_path <- paste0(path, table_name, ".csv")
+  write_csv_from_table_clickhouse(table_name = table_name, output_path)
   
   ## Train
-  query = "SELECT * FROM raw.test"
-  output_path <- paste0(path, "test.csv")
-  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
-  
-  ## Train
-  query = "SELECT * FROM raw.train"
-  output_path <- paste0(path, "train.csv")
-  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
+  table_name <- "train"
+  output_path <- paste0(path, table_name, ".csv")
+  write_csv_from_table_clickhouse(table_name = table_name, output_path)
   
   # Disconnect
   dbDisconnect(con_ch)
@@ -61,8 +69,8 @@ get_shiny_data <- function() {
 get_shiny_data_ch <- function() {
   
   # Get center and meal data
-  df_center <<- read.csv2(paste0("./data/clickhouse/", "fulfilment_center_info.csv"), sep = ";") %>% as.data.table()
-  df_meal <<- read.csv2(paste0("./data/clickhouse/", "meal_info.csv"), sep = ";") %>% as.data.table()
+  df_center <<- read.csv2(paste0("./data/clickhouse/", "center.csv"), sep = ";") %>% as.data.table()
+  df_meal <<- read.csv2(paste0("./data/clickhouse/", "meal.csv"), sep = ";") %>% as.data.table()
   
   # Train info
   df_train <<- read.csv2(paste0("./data/clickhouse/", "train.csv"), sep = ";") %>% as.data.table()
