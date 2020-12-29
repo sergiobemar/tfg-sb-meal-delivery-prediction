@@ -1,9 +1,12 @@
 source('src/features/preprocessing.R')
 
-write_csv_from_table_clickhouse <- function(table_name, output_filename) {
+write_csv_from_table_clickhouse <- function(conn, table_name, output_filename) {
+  
+  # Create query
   query = paste0("SELECT * FROM raw.", table_name)
-  # output_path <- paste0(path, "meal.csv")
-  dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_filename, quote = F, row.names = F)
+  
+  # Send query and write received dataframe into csv
+  dbGetQuery(conn, query) %>% as.data.frame() %>% write.csv2(output_filename, quote = F, row.names = F)
   
   print(paste0("OK Write csv ", output_filename, " from raw.", table_name))
 }
@@ -30,22 +33,22 @@ get_data_clickhouse <- function() {
   ## Meal
   table_name <- "meal"
   output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(table_name = table_name, output_path)
+  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
   
   ## Center
   table_name <- "center"
   output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(table_name = table_name, output_path)
+  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
   
   ## Test
   table_name <- "test"
   output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(table_name = table_name, output_path)
+  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
   
   ## Train
   table_name <- "train"
   output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(table_name = table_name, output_path)
+  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
   
   # Disconnect
   dbDisconnect(con_ch)
