@@ -9,6 +9,9 @@ load_packages_shiny()
 # Config
 config_app()
 
+# Get data from Clickhouse
+get_data_clickhouse()
+
 # Get data
 # get_shiny_data()
 get_shiny_data_ch()
