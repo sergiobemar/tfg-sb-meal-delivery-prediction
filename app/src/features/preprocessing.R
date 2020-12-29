@@ -8,7 +8,7 @@ preprocess_dataset <- function(df, filename, save = T) {
   
   # Get center if not exists their columns 
   if (!("center_type" %in% colnames(df_result)) | !("region_code" %in% colnames(df_result))) {
-    df_center <- read.csv2("./data/raw/fulfilment_center_info.csv", sep = ",") %>% as.data.table()
+    # df_center <- read.csv2("./data/raw/fulfilment_center_info.csv", sep = ",") %>% as.data.table()
     
     # Join with input dataframe
     df_result <- df_result %>% 
@@ -17,7 +17,7 @@ preprocess_dataset <- function(df, filename, save = T) {
   
   # Get meal if not exists their columns
   if (!("category" %in% colnames(df_result)) | !("cuisine" %in% colnames(df_result))) {
-    df_meal <- read.csv2("./data/raw/meal_info.csv", sep = ",") %>% as.data.table()
+    # df_meal <- read.csv2("./data/raw/meal_info.csv", sep = ",") %>% as.data.table()
   
     # Join with input dataframe
     df_result <- df_result %>% 
