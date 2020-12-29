@@ -12,25 +12,31 @@ get_data_clickhouse <- function() {
     database = credentials_ch$database
   )
   
+  # Check if clickhouse folder doesn't exist, if not, it's created
+  path <- './data/clickhouse/'
+  if (!dir.exists(path)) {
+    dir.create(path)
+  }
+  
   # Get raw data
   ## Meal
   query = "SELECT * FROM raw.meal"
-  output_path <- "./data/clickhouse/meal.csv"
+  output_path <- paste0(path, "meal.csv")
   dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
   
   ## Center
   query = "SELECT * FROM raw.center"
-  output_path <- "./data/clickhouse/center.csv"
+  output_path <- paste0(path, "center.csv")
   dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
   
   ## Train
   query = "SELECT * FROM raw.test"
-  output_path <- "./data/clickhouse/test.csv"
+  output_path <- paste0(path, "test.csv")
   dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
   
   ## Train
   query = "SELECT * FROM raw.train"
-  output_path <- "./data/clickhouse/train.csv"
+  output_path <- paste0(path, "train.csv")
   dbGetQuery(con_ch, query) %>% as.data.frame() %>% write.csv2(output_path, quote = F, row.names = F)
   
   # Disconnect
