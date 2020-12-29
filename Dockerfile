@@ -27,6 +27,9 @@ RUN R -e "install.packages(c('dplyr', 'data.table', 'plotly', 'purrr', 'lubridat
 # install shinysky
 RUN R -e "remotes::install_github('AnalytixWare/ShinySky')"
 
+# install clickhouse-r
+RUN R -e "remotes::install_github('hannesmuehleisen/clickhouse-r')"
+
 # copy the app to the image
 RUN mkdir /root/app
 COPY app /root/app
