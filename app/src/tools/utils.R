@@ -1,12 +1,16 @@
 config_app <- function() {
   
+  options(shiny.sanitize.errors = TRUE)
+  
   # Get configuration vars from JSON file
   config_file <<- jsonlite::fromJSON("./config/config_shiny_app.json")
   
   # Read JSON alerts file
   alerts_file <<- jsonlite::fromJSON("./config/alerts.json")
   
-  options(shiny.sanitize.errors = TRUE)
+  # Read Clickhouse credentials
+  credentials_ch <<- jsonlite::fromJSON("./config/credentials_clickhouse.json")
+  
 }
 
 load_packages <- function(packages){
@@ -36,7 +40,7 @@ load_css <- function() {
 
 load_packages_shiny <- function() {
   
-  packages <- c('dplyr', 'data.table', 'plotly', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'httr', 'shinyBS', 'remotes')
+  packages <- c('dplyr', 'data.table', 'plotly', 'purrr', 'lubridate', 'jsonlite', 'shiny', 'shinydashboard', 'DT', 'shinyWidgets', 'httr', 'shinyBS', 'remotes', 'DBI')
   
   load_packages(packages)
 
@@ -48,6 +52,13 @@ load_packages_shiny <- function() {
     library(shinysky)
   }
 
+  # Install Clickhouse-r if it's not installed
+  # https://github.com/hannesmuehleisen/clickhouse-r
+  package <- "clickhouse"
+  if (!(package %in% rownames(installed.packages()))) {
+    install_github("hannesmuehleisen/clickhouse-r")
+  }
+  
 #  if (!('kableExtra' %in% rownames(installed.packages()))) {
 #    install.packages("kableExtra", dependencies = TRUE)
 #    library(kableExtra)
