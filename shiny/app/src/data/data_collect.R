@@ -30,55 +30,56 @@ connect_to_clickhouse <- function(credentials_file) {
 get_data <- function() {
   
   # Create connection to Clickhouse
-  # con_ch <- dbConnect(
-  #   clickhouse::clickhouse(), 
-  #   host = credentials_ch$host, 
-  #   port = credentials_ch$port, 
-  #   user = credentials_ch$user, 
-  #   password = credentials_ch$password,
-  #   database = credentials_ch$database
-  # )
+  is_possible_connection <- dbCanConnect(
+    clickhouse::clickhouse(),
+    host = credentials_ch$host,
+    port = credentials_ch$port,
+    user = credentials_ch$user,
+    password = credentials_ch$password,
+    database = credentials_ch$database
+  )
   
-  # Connect to Clickhouse, if the connection was failed, the data will be got from ./data/raw
-  con_ch <- connect_to_clickhouse(credentials_ch)
-  
-  if (con_ch == FALSE) {
+  if (is_possible_connection[1] == FALSE) {
     get_shiny_data()
-    return(FALSE)
+  } else {
+    
+    # Connect to Clickhouse, if the connection was failed, the data will be got from ./data/raw
+    con_ch <- connect_to_clickhouse(credentials_ch)
+    
+    
+    # Check if clickhouse folder doesn't exist, if not, it's created
+    path <- './data/clickhouse/'
+    if (!dir.exists(path)) {
+      dir.create(path)
+    }
+    
+    # Get raw data
+    ## Meal
+    table_name <- "meal"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
+    ## Center
+    table_name <- "center"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
+    ## Test
+    table_name <- "test"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
+    ## Train
+    table_name <- "train"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
+    # Disconnect
+    dbDisconnect(con_ch)
+    
+    # Get data from ./data/clickhouse  
+    get_shiny_data_ch()
   }
-  
-  # Check if clickhouse folder doesn't exist, if not, it's created
-  path <- './data/clickhouse/'
-  if (!dir.exists(path)) {
-    dir.create(path)
-  }
-  
-  # Get raw data
-  ## Meal
-  table_name <- "meal"
-  output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
-  
-  ## Center
-  table_name <- "center"
-  output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
-  
-  ## Test
-  table_name <- "test"
-  output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
-  
-  ## Train
-  table_name <- "train"
-  output_path <- paste0(path, table_name, ".csv")
-  write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
-  
-  # Disconnect
-  dbDisconnect(con_ch)
-
-  # Get data from ./data/clickhouse  
-  get_shiny_data_ch()
 }
 
 get_shiny_data <- function() {
