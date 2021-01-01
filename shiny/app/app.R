@@ -9,12 +9,12 @@ load_packages_shiny()
 # Config
 config_app()
 
-# Get data from Clickhouse
-get_data_clickhouse()
+# Get data from Clickhouse at first, but if database returns an error, it will be got from the persistent files
+get_data()
 
 # Get data
 # get_shiny_data()
-get_shiny_data_ch()
+# get_shiny_data_ch()
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(

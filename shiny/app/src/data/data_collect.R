@@ -1,27 +1,51 @@
 source('src/features/preprocessing.R')
 
-write_csv_from_table_clickhouse <- function(conn, table_name, output_filename) {
+connect_to_clickhouse <- function(credentials_file) {
   
-  # Create query
-  query = paste0("SELECT * FROM raw.", table_name)
+  tryCatch(
+    {
+      con_ch <- dbConnect(
+        clickhouse::clickhouse(), 
+        host = credentials_file$host, 
+        port = credentials_file$port, 
+        user = credentials_file$user, 
+        password = credentials_file$password,
+        database = credentials_file$database
+      )
+      
+      print(paste0("Connection to ", credentials_file$host, " is made."))
+      
+      return(con_ch)
+    },
+    error = function(err) {
+      print("Please, there was an error, re-connect. Show the following info.")
+      print(err)
+      
+      return(FALSE)
+    }
+  )
   
-  # Send query and write received dataframe into csv
-  dbGetQuery(conn, query) %>% as.data.frame() %>% write.csv2(output_filename, quote = F, row.names = F)
-  
-  print(paste0("OK Write csv ", output_filename, " from raw.", table_name))
 }
 
-get_data_clickhouse <- function() {
+get_data <- function() {
   
   # Create connection to Clickhouse
-  con_ch <- dbConnect(
-    clickhouse::clickhouse(), 
-    host = credentials_ch$host, 
-    port = credentials_ch$port, 
-    user = credentials_ch$user, 
-    password = credentials_ch$password,
-    database = credentials_ch$database
-  )
+  # con_ch <- dbConnect(
+  #   clickhouse::clickhouse(), 
+  #   host = credentials_ch$host, 
+  #   port = credentials_ch$port, 
+  #   user = credentials_ch$user, 
+  #   password = credentials_ch$password,
+  #   database = credentials_ch$database
+  # )
+  
+  # Connect to Clickhouse, if the connection was failed, the data will be got from ./data/raw
+  con_ch <- connect_to_clickhouse(credentials_ch)
+  
+  if (con_ch == FALSE) {
+    get_shiny_data()
+    return(FALSE)
+  }
   
   # Check if clickhouse folder doesn't exist, if not, it's created
   path <- './data/clickhouse/'
@@ -52,7 +76,9 @@ get_data_clickhouse <- function() {
   
   # Disconnect
   dbDisconnect(con_ch)
-  
+
+  # Get data from ./data/clickhouse  
+  get_shiny_data_ch()
 }
 
 get_shiny_data <- function() {
@@ -101,4 +127,15 @@ get_data_predict <- function(center, meal) {
     preprocess_dataset("pred_test.csv", save = FALSE)
   
   return(list(df_pred_orders, df_pred_test))
+}
+
+write_csv_from_table_clickhouse <- function(conn, table_name, output_filename) {
+  
+  # Create query
+  query = paste0("SELECT * FROM raw.", table_name)
+  
+  # Send query and write received dataframe into csv
+  dbGetQuery(conn, query) %>% as.data.frame() %>% write.csv2(output_filename, quote = F, row.names = F)
+  
+  print(paste0("OK Write csv ", output_filename, " from raw.", table_name))
 }
