@@ -83,16 +83,16 @@ get_data <- function() {
 
 get_shiny_data <- function() {
   
+  # Get center and meal data
+  df_center <<- read.csv2(paste0("./data/raw/", "fulfilment_center_info.csv"), sep = ",") %>% as.data.table()
+  df_meal <<- read.csv2(paste0("./data/raw/", "meal_info.csv"), sep = ",") %>% as.data.table()
+  
   # Train info
   df_train <<- read.csv2(paste0("./data/raw/", "train.csv"), sep = ",") %>% as.data.table()
   df_orders_set_up <<- preprocess_dataset(df_train, "train.csv", FALSE)
   
   # Predict info
   df_test <<- read.csv2(paste0("./data/raw/", "test.csv"), sep = ",") %>% as.data.table()
-  
-  # Get center and meal data
-  df_center <<- read.csv2(paste0("./data/raw/", "fulfilment_center_info.csv"), sep = ",") %>% as.data.table()
-  df_meal <<- read.csv2(paste0("./data/raw/", "meal_info.csv"), sep = ",") %>% as.data.table()
 }
 
 get_shiny_data_ch <- function() {
