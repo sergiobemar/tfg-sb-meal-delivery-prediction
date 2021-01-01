@@ -1,0 +1,22 @@
+proxy:
+  port: 80
+  authentication: simple
+  admin-groups: admins
+  users:
+    - name: admin
+      password: admin1234
+      groups: admins
+    - name: Alexa
+      password: alexa
+  docker:
+    internal-networking: true
+  specs:
+    - id: 01_prediction
+      display-name: Plataforma de Pedidos
+      description: Plataforma para el reporting de pedidos realizados así como de la previsión de futuras ventas.
+      container-cmd: ["R", "-e shiny::runApp('/root/app')"]
+      container-image: shiny-app
+      # container-network: sp-test-net
+
+logging:
+  file: shinyproxy.log
