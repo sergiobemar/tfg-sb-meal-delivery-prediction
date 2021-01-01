@@ -16,7 +16,6 @@ proxy:
       description: Plataforma para el reporting de pedidos realizados así como de la previsión de futuras ventas.
       container-cmd: ["R", "-e shiny::runApp('/root/app')"]
       container-image: shiny-app
-      # container-network: sp-test-net
 
 logging:
   file: shinyproxy.log
