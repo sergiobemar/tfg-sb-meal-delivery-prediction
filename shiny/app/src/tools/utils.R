@@ -3,13 +3,13 @@ config_app <- function() {
   options(shiny.sanitize.errors = TRUE)
   
   # Get configuration vars from JSON file
-  config_file <<- jsonlite::fromJSON("./config/config_shiny_app.json")
+  config_file <<- jsonlite::fromJSON(readLines("config/config_shiny_app.json"))
   
   # Read JSON alerts file
-  alerts_file <<- jsonlite::fromJSON("./config/alerts.json")
+  alerts_file <<- jsonlite::fromJSON(readLines("config/alerts.json"))
   
   # Read Clickhouse credentials
-  credentials_ch <<- jsonlite::fromJSON("./config/credentials_clickhouse.json")
+  credentials_ch <<- jsonlite::fromJSON(readLines("config/credentials_clickhouse.json"))
   
 }
 
