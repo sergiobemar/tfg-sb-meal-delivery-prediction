@@ -214,6 +214,9 @@ df_result$op_area <- df_result$op_area %>% as.numeric()
 
 # Select numeric cols
 numeric_cols <- unlist(lapply(df_result, is.numeric))
+
+# Get total orders
+total_orders <- df_result %>% select(num_orders) %>% pull() %>% sum()
 ```
 
 Para entender cada dimensión se muestran los descriptivos de cada variable.
@@ -265,7 +268,8 @@ if (knitr::is_html_output()) {
 df_center <- df_result %>%
   group_by(center_id, center_type) %>%
   summarise(
-    total_orders = sum(num_orders)
+    total_orders = sum(num_orders),
+    turnover = sum(checkout_price)
   ) %>% 
   arrange(desc(total_orders)) %>% ungroup()
 ```
@@ -369,8 +373,12 @@ if (knitr::is_html_output()) {
     kable()
 }
 
+```
+
+```{r rm_df_cities}
 df_cities %>% rm()
 ```
+
 
 ### Centros por región
 
@@ -380,9 +388,13 @@ df_regions <- df_result %>%
   summarise(
     nb_centers = n_distinct(center_id),
     nb_cities = n_distinct(city_code),
+    nb_orders = sum(num_orders)
   ) %>% 
   mutate(
-    centers_per_city = nb_centers/nb_cities
+    centers_per_city = nb_centers/nb_cities,
+    weight = nb_orders/total_orders,
+    orders_per_city = nb_orders/nb_cities,
+    orders_per_center = nb_orders/nb_centers
   ) %>%
   arrange(desc(nb_centers))
 ```
@@ -409,14 +421,14 @@ if (knitr::is_html_output()) {
   
   fig <- fig %>% 
     layout(
-      title = "Regiones",
+      title = "Distribución de centros y ciudades por regiones",
       xaxis = list(
         title = "Código de región", 
         type = 'category',
         showticklabels = TRUE
       ),
       yaxis = list(
-        title = "Número de centros"
+        title = ""
       )
     )
   
@@ -425,7 +437,77 @@ if (knitr::is_html_output()) {
   df_regions %>%
     kable()
 }
+```
 
+A continuación se muestran el peso de pedidos por región así como el número medio de los mismos por cada una de las ciudades y centros.
+
+```{r orders_per_region}
+
+fig1 <- plot_ly(
+  data = df_regions,
+  x = ~reorder(region_code, desc(weight)),
+  y = ~weight,
+  type = "bar",
+  name = "Peso de pedidos por región"
+) %>%
+  layout(
+    title = "Peso de pedidos por región",
+    xaxis = list(
+      title = "Región", 
+      type = 'category'
+    ),
+    yaxis = list(
+      title = "",
+      tickformat = ",.2%"
+    )
+  )
+
+fig2 <- plot_ly(
+  data = df_regions,
+  x = ~reorder(region_code, desc(orders_per_city)),
+  y = ~orders_per_city,
+  type = "bar",
+  name = "Pedidos por ciudad de cada región"
+) %>%
+  layout(
+    title = "Pedidos por ciudad de cada región",
+    xaxis = list(
+      title = "Región", 
+      type = 'category'
+    ),
+    yaxis = list(
+      title = ""
+      # tickformat = ",.2%"
+    )
+  )
+
+fig3 <- plot_ly(
+  data = df_regions,
+  x = ~reorder(region_code, desc(orders_per_center)),
+  y = ~orders_per_center,
+  type = "bar",
+  name = "Pedidos por centro de cada región"
+) %>%
+  layout(
+    title = "Pedidos por centro de cada región",
+    xaxis = list(
+      title = "Región", 
+      type = 'category'
+    ),
+    yaxis = list(
+      title = ""
+      # tickformat = ",.2%"
+    )
+  )
+
+fig <- subplot(fig1, fig2, fig3, nrows = 3) %>% layout(
+  title = ""
+)
+
+fig
+```
+
+```{r rm_df_regions}
 df_regions %>% rm()
 ```
 
@@ -541,6 +623,36 @@ df_meal <- df_result %>%
   ) %>% 
   arrange(desc(total_orders)) %>% ungroup()
 ```
+
+```{r mean_orders_by_category}
+df_meal %>% 
+  as.data.frame() %>% 
+  group_by(category) %>% 
+  summarise(
+      sum = sum(total_orders),
+      count = n_distinct(meal_id)
+  ) %>% 
+  transmute(
+    category, 
+    average_per_meal = sum/count
+  ) %>% 
+  plot_ly(
+    x = ~reorder(category, desc(average_per_meal)), 
+    y = ~average_per_meal, 
+    type='bar'
+  ) %>%
+  layout(
+    title = "Media de pedidos por categoría",
+    xaxis = list(
+      title = "Categoría"
+    ),
+    yaxis = list(
+      title = ""
+    )
+  )
+```
+
+
 
 ```{r show_orders_per_meal}
 if (knitr::is_html_output()) {
@@ -807,11 +919,14 @@ df_cuisine %>% rm()
 ```{r show_total_orders_per_week}
 df_tmp <- df_result %>%
   group_by(date) %>%
-  summarise(total_orders = sum(num_orders)) 
+  summarise(
+    total_orders = sum(num_orders),
+    turnover = sum(checkout_price)
+  ) 
 
-fig <- plot_ly()
+fig1 <- plot_ly()
 
-fig <- fig %>% add_trace(
+fig1 <- fig1 %>% add_trace(
   data = df_tmp,
   x = ~date,
   y = ~total_orders,
@@ -820,7 +935,16 @@ fig <- fig %>% add_trace(
   mode = 'lines'
 )
 
-fig <- fig %>% 
+fig1 <- fig1 %>%
+  add_trace(
+    data = df_tmp,
+    x = ~date,
+    y = ~turnover,
+    name = "Volumen de ventas",
+    type = 'scatter', 
+    mode = 'lines',
+    yaxis = "y2"
+  ) %>% 
   layout(
     title = "Evolución temporal de los pedidos",
     separators = ',.',
@@ -830,10 +954,17 @@ fig <- fig %>%
     yaxis = list (
       title = "Nb pedidos",
       tickformat = ",.0f"
+    ),
+    yaxis2 = list (
+      title = "Volumen de ventas",
+      tickformat = ",.0f",
+      ticksuffix = "€",
+      overlaying = "y",
+      side = "right"
     )
   )
 
-fig
+fig1
 ```
 
 ### Pedidos por región
@@ -982,7 +1113,7 @@ df_tmp %>% rm()
 ```
 
 
-## Correlación de variables
+# Correlación de variables
 ```{r matrix_correlation}
 
 df_tmp <- df_result[,numeric_cols]
