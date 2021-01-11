@@ -11,7 +11,8 @@
 - [7. Install Java](#7-install-java)
 - [8. Install Maven](#8-install-maven)
 - [9. ShinyProxy](#9-shinyproxy)
-- [Config ShinyProxy](#config-shinyproxy)
+- [10. Config ShinyProxy](#10-config-shinyproxy)
+- [11. Configure Container Registry](#11-configure-container-registry)
 
 ## 1. Create a VM Machine in VM Engine
 
@@ -217,7 +218,7 @@ mvn -U clean install
 
 If everything was ok, a file such as *`target/shinyproxy-2.x.x.jar`* should exist.
 
-## Config ShinyProxy
+## 10. Config ShinyProxy
 
 Now, we have to set the Shiny dashboard that it's created for the project as the application used by ShinyProxy, for be capable of making this configuration exists the file *`target/classes/application.yml`*. 
 
@@ -227,6 +228,53 @@ Edit it with the following configuration:
 
 ```
 
+## 11. Configure Container Registry
+
+Container Registry allow the user to have several images upload on the cloud in order to get them from specific pod with Docker.
+
+At first, you have to go to your machine so that Docker has permissions in order to pull and push images to the service. Then, open the console and run the following commands:
+
+```
+gcloud auth login
+```
+
+![Container Registry - gcloud auth login](images/shinyproxy-3.2-gcloud-authpng.png)
+
+```
+gcloud auth configure-docker
+```
+
+![Container Registry - gcloud auth configure-docker](images/shinyproxy-3.3-gcloud-configure-dockerpng.png)
+
+After that, you can go to the machine in order to push the Shiny app image to *Container Registry* and tag the image with the registry name by using the command: `docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/IMAGE` where:
+
++ `SOURCE_IMAGE`: local image name or image ID
++ `HOSTNAME`: specifies location where you will store the image, for European Union it has to be used `eu.gcr.io`
++ `PROJECT_ID`: GCP project name
++ `IMAGE`: name of the image
+
+```
+docker tag shiny-app-orders eu.gcr.io/phonic-botany-288716/shiny-app-orders
+```
+
+![Container Registry - docker tag](images/shinyproxy-3.1-container_registry.png)
+
+Then, you can push the image to *Container Registry*.
+
+```
+docker push eu.gcr.io/phonic-botany-288716/shiny-app-orders
+```
+
+![Container Registry - docker push](images/shinyproxy-3.4-docker-pushpng.png)
+
+Now, if everything was ok, the image should be shown in GCP Console inside Container Registry menu.
+
+![Container Registry - List images](images/shinyproxy-3.5-container-registry-images.png)
+
+##
+docker run --rm -v /var/run/docker.sock:/var
+/run/docker.sock --net sp-net -p 8080:8080 shinyproxy
+
 <h1>Useful links</h1>
 
 + [Crear imagen Docker con Shiny Server](https://www.analyticslane.com/2020/07/10/crear-imagen-docker-con-shiny-server/)
@@ -235,6 +283,8 @@ Edit it with the following configuration:
 + [Download Shiny Server for Ubuntu 16.04 or later](https://rstudio.com/products/shiny/download-server/ubuntu/)
 + [GitHub - ShinyProxy Configuration Examples](https://github.com/openanalytics/shinyproxy-config-examples)
 + [GitHub - ShinyProxy Template](https://github.com/openanalytics/shinyproxy-template)
++ [Google Cloud - Container Registry - Advanced authentication](https://cloud.google.com/container-registry/docs/advanced-authentication#helpers)
++ [Google Cloud - Container Registry - Pushing and pulling images](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 + [How To Dockerize ShinyApps](https://www.statworx.com/de/blog/how-to-dockerize-shinyapps/)
 + [How To Install R on Ubuntu 18.04 Quickstart](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04-quickstart)
 + [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html)
