@@ -439,7 +439,7 @@ server <- function(input, output, session) {
                 big.mark = ".", 
                 decimal.mark = ","
             ),
-            'Error total estimado',
+            'Error total estimado (RMSE)',
             icon = icon("exclamation-circle"), color = 'purple'
         )
     })
