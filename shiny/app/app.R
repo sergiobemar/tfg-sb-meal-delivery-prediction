@@ -41,69 +41,109 @@ ui <- dashboardPage(
                         status = "primary",
                         column(
                             width = 4,
-                            box(
-                                height = 300,
-                                # Date
-                                dateRangeInput(
-                                    inputId = 'dash_date_filter',
-                                    label = 'Fechas pedidos',
-                                    start = df_orders_set_up$date %>% max() -365,
-                                    end = df_orders_set_up$date %>% max(),
-                                    min = df_orders_set_up$date %>% min(),
-                                    max = df_orders_set_up$date %>% max(),
-                                    weekstart = 1,
-                                    language = 'es'
-                                ),
-                                actionButton(
-                                    inputId = 'dash_btn_visualize',
-                                    label = 'Visualizar'
-                                )
+                            # Date
+                            dateRangeInput(
+                                inputId = 'dash_date_filter',
+                                label = 'Fechas pedidos',
+                                start = df_orders_set_up$date %>% max() -365,
+                                end = df_orders_set_up$date %>% max(),
+                                min = df_orders_set_up$date %>% min(),
+                                max = df_orders_set_up$date %>% max(),
+                                weekstart = 1,
+                                language = 'es'
+                            ),
+                            actionButton(
+                                inputId = 'dash_btn_visualize',
+                                label = 'Visualizar'
                             )
                         ),
                         column(
-                            width = 4,
-                            box(
-                                title = 'Centros',
-                                # width = NULL,
-                                height = 300,
-                                selectizeInput(
-                                    "dash_center_type",
-                                    label = h5("Tipo"),
-                                    choices = df_center$center_type %>% unique() %>% sort(),
-                                    selected = NULL,
-                                    multiple = TRUE
+                            width = 8,
+                            fluidRow(
+                                box(
+                                    title = 'Centros',
+                                    # width = NULL,
+                                    # height = 300,
+                                    selectizeInput(
+                                        "dash_center_type",
+                                        label = h5("Tipo"),
+                                        choices = df_center$center_type %>% unique() %>% sort(),
+                                        selected = NULL,
+                                        multiple = TRUE
+                                    ),
+                                    selectizeInput(
+                                        "dash_center_region",
+                                        label = h5("Región"),
+                                        choices = df_center$region_code %>% unique() %>% sort(),
+                                        selected = NULL,
+                                        multiple = TRUE
+                                    )
                                 ),
-                                selectizeInput(
-                                    "dash_center_region",
-                                    label = h5("Región"),
-                                    choices = df_center$region_code %>% unique() %>% sort(),
-                                    selected = NULL,
-                                    multiple = TRUE
-                                )
-                            )
-                        ),
-                        column(
-                            width = 4,
-                            box(
-                                title = 'Comidas',
-                                # width = NULL,
-                                height = 300,
-                                selectizeInput(
-                                    "dash_meal_cuisine",
-                                    label = h5("Cocina"),
-                                    choices = df_meal$cuisine %>% unique() %>% sort(),
-                                    selected = NULL,
-                                    multiple = TRUE
-                                ),
-                                selectizeInput(
-                                    "dash_meal_category",
-                                    label = h5("Categoría"),
-                                    choices = df_meal$category %>% unique() %>% sort(),
-                                    selected = NULL,
-                                    multiple = TRUE
+                                box(
+                                    title = 'Comidas',
+                                    # width = NULL,
+                                    # height = 300,
+                                    selectizeInput(
+                                        "dash_meal_cuisine",
+                                        label = h5("Cocina"),
+                                        choices = df_meal$cuisine %>% unique() %>% sort(),
+                                        selected = NULL,
+                                        multiple = TRUE
+                                    ),
+                                    selectizeInput(
+                                        "dash_meal_category",
+                                        label = h5("Categoría"),
+                                        choices = df_meal$category %>% unique() %>% sort(),
+                                        selected = NULL,
+                                        multiple = TRUE
+                                    )
                                 )
                             )
                         )
+                        # column(
+                        #     width = 4,
+                        #     box(
+                        #         title = 'Centros',
+                        #         # width = NULL,
+                        #         # height = 300,
+                        #         selectizeInput(
+                        #             "dash_center_type",
+                        #             label = h5("Tipo"),
+                        #             choices = df_center$center_type %>% unique() %>% sort(),
+                        #             selected = NULL,
+                        #             multiple = TRUE
+                        #         ),
+                        #         selectizeInput(
+                        #             "dash_center_region",
+                        #             label = h5("Región"),
+                        #             choices = df_center$region_code %>% unique() %>% sort(),
+                        #             selected = NULL,
+                        #             multiple = TRUE
+                        #         )
+                        #     )
+                        # ),
+                        # column(
+                        #     width = 4,
+                        #     box(
+                        #         title = 'Comidas',
+                        #         # width = NULL,
+                        #         # height = 300,
+                        #         selectizeInput(
+                        #             "dash_meal_cuisine",
+                        #             label = h5("Cocina"),
+                        #             choices = df_meal$cuisine %>% unique() %>% sort(),
+                        #             selected = NULL,
+                        #             multiple = TRUE
+                        #         ),
+                        #         selectizeInput(
+                        #             "dash_meal_category",
+                        #             label = h5("Categoría"),
+                        #             choices = df_meal$category %>% unique() %>% sort(),
+                        #             selected = NULL,
+                        #             multiple = TRUE
+                        #         )
+                        #     )
+                        # )
                     )
                 ),
                 # Insert busy indicator icon and text
@@ -131,6 +171,7 @@ ui <- dashboardPage(
                             plotlyOutput("cuisine_pie_chart", height = '275px')
                         )
                     ),
+                    br(),
                     dataTableOutput("orders_table")
                 )
             ),

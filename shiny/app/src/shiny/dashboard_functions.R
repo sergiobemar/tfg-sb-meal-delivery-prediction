@@ -182,9 +182,6 @@ show_plotly_prediction_line_chart <- function(data_train, data_test, rmse) {
     ungroup() %>% 
     as.data.frame()
   
-  print(df_plot_train %>% filter(date == max(date)) %>% length())
-  print(df_plot_test %>% length())
-  
   # Calculate confidence interval
   df_plot_prediction <- bind_rows(
     df_plot_test,
@@ -199,9 +196,6 @@ show_plotly_prediction_line_chart <- function(data_train, data_test, rmse) {
       total_orders_min = if_else(total_orders_min < 0, 0, total_orders_min),
       total_orders_max = if_else(total_orders_max < 0, 0, total_orders_max)
     )
-  
-  
-  print(df_plot_prediction %>% length())
   
   # Add high confidence interval
   fig <- fig %>% add_trace(
