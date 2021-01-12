@@ -7,6 +7,7 @@ get_orders_table <- function(data) {
     rownames = FALSE,
     selection = "none",
     options = list(
+      language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),		
       columnDefs = list(
         list(
           className = 'dt-center'
