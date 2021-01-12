@@ -1,14 +1,20 @@
 proxy:
   port: 8080
-  authentication: simple
   admin-groups: admins
   container-wait-time: 60000
-  users:
-    - name: admin
-      password: admin1234
-      groups: admins
-    - name: Alexa
-      password: alexa
+  authentication: openid
+  openid:
+    auth-url: https://sergiobemar.eu.auth0.com/authorize
+    token-url: https://sergiobemar.eu.auth0.com/oauth/token
+    jwks-url: https://sergiobemar.eu.auth0.com/.well-known/jwks.json
+    client-id: WMxfjLmZ0vxhaVBiJrdHwRDZeHZlCvzk
+    client-secret: r1eJ7uww7OyIEJqnb_jv_Opmp4YuMlLSXSIElaGrjZj7N2iUfWbLa79Mm7Ucoe7U
+#  saml:
+#    idp-metadata-url: https://sergiobemar.eu.auth0.com/samlp/metadata/WMxfjLmZ0vxhaVBiJrdHwRDZeHZlCvzk
+#    app-entity-id: urn:sergiobemar.eu.auth0.com
+#    app-base-url: http://35.210.156.160
+#    name-attribute: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
+#    roles-attribute: http://schemas.auth0.com/shinyproxy_roles
   docker:
     internal-networking: true
   specs:
