@@ -49,13 +49,13 @@ show_plotly_center_type_pie <- function(data) {
         "#ccebc5"
       )
     )
-  )
+  ) %>%
+  	config(locale = "es")
   
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipología de centros"
-    ) %>%
-  	config(locale = "es")
+    )
   
   fig
 }
@@ -83,13 +83,13 @@ show_plotly_cuisine_pie <- function(data) {
           '#ffff99'
         )
       )
-    )
+    ) %>%
+  	config(locale = "es")
   
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipo de cocina"
-    ) %>%
-  	config(locale = "es")
+    )
   
   fig
 }
@@ -124,8 +124,7 @@ show_plotly_general_orders <- function(data) {
         title = "Nb pedidos",
         tickformat = ",.0f"
       )
-    ) %>%
-  	config(locale = "es")
+    )
   
   fig
 }
