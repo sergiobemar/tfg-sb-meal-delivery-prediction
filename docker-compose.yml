@@ -35,7 +35,6 @@ services:
     networks:
       - sp-net
     volumes:
-      - ./application.yml:/opt/shinyproxy/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
     expose:
       - 8080
