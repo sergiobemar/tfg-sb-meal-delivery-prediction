@@ -4,17 +4,16 @@ proxy:
   container-wait-time: 60000
   authentication: openid
   openid:
-    auth-url: https://sergiobemar.eu.auth0.com/authorize
-    token-url: https://sergiobemar.eu.auth0.com/oauth/token
-    jwks-url: https://sergiobemar.eu.auth0.com/.well-known/jwks.json
-    client-id: WMxfjLmZ0vxhaVBiJrdHwRDZeHZlCvzk
-    client-secret: r1eJ7uww7OyIEJqnb_jv_Opmp4YuMlLSXSIElaGrjZj7N2iUfWbLa79Mm7Ucoe7U
-#  saml:
-#    idp-metadata-url: https://sergiobemar.eu.auth0.com/samlp/metadata/WMxfjLmZ0vxhaVBiJrdHwRDZeHZlCvzk
-#    app-entity-id: urn:sergiobemar.eu.auth0.com
-#    app-base-url: http://35.210.156.160
-#    name-attribute: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
-#    roles-attribute: http://schemas.auth0.com/shinyproxy_roles
+    auth-url: https://accounts.google.com/o/oauth2/v2/auth
+    token-url: https://www.googleapis.com/oauth2/v4/token
+    jwks-url: https://www.googleapis.com/oauth2/v3/certs
+    client-id: 984130808975-5ia6lbj9cbh11a6jm27lcte10n2krs3q.apps.googleusercontent.com
+    client-secret: 0skUAOWGYQMvp2hD2W7ZpqsN
+    # auth-url: https://sergiobemar.eu.auth0.com/authorize
+    # token-url: https://sergiobemar.eu.auth0.com/oauth/token
+    # jwks-url: https://sergiobemar.eu.auth0.com/.well-known/jwks.json
+    # client-id: WMxfjLmZ0vxhaVBiJrdHwRDZeHZlCvzk
+    # client-secret: r1eJ7uww7OyIEJqnb_jv_Opmp4YuMlLSXSIElaGrjZj7N2iUfWbLa79Mm7Ucoe7U
   docker:
     internal-networking: true
   specs:
