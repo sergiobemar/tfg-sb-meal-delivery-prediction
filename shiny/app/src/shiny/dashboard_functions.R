@@ -49,13 +49,12 @@ show_plotly_center_type_pie <- function(data) {
         "#ccebc5"
       )
     )
-  ) %>%
-  	plotly::config(locale = "es")
+  )
   
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipología de centros"
-    )
+    ) %>% plotly::locale("es)
   
   fig
 }
@@ -83,13 +82,12 @@ show_plotly_cuisine_pie <- function(data) {
           '#ffff99'
         )
       )
-    ) %>%
-  	plotly::config(locale = "es")
+    )
   
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipo de cocina"
-    )
+    ) %>% plotly::locale("es)
   
   fig
 }
