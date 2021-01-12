@@ -54,7 +54,7 @@ show_plotly_center_type_pie <- function(data) {
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipología de centros"
-    ) %>% plotly::locale("es)
+    ) %>% plotly::locale("es")
   
   fig
 }
@@ -87,7 +87,7 @@ show_plotly_cuisine_pie <- function(data) {
   fig <- fig %>% 
     layout(
       title = "Pedidos por tipo de cocina"
-    ) %>% plotly::locale("es)
+    ) %>% plotly::locale("es")
   
   fig
 }
@@ -122,7 +122,7 @@ show_plotly_general_orders <- function(data) {
         title = "Nb pedidos",
         tickformat = ",.0f"
       )
-    )
+    ) %>% plotly::locale("es")
   
   fig
 }
@@ -173,7 +173,7 @@ show_plotly_prediction_line_chart <- function(data_train, data_test) {
         title = "Nb pedidos",
         tickformat = ",.0f"
       )
-    )
+    ) %>% plotly::locale("es")
   
   fig
 }
