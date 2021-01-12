@@ -2,10 +2,10 @@ version: "3.6"
 services:
   nginx:
     image: nginx:alpine
-    container_name: tki_nginx
+    container_name: nginx
     restart: on-failure
     networks:
-      - tki-net
+      - sp-net
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./data/certbot/conf:/etc/letsencrypt
@@ -33,7 +33,7 @@ services:
     container_name: shinyproxy
     restart: on-failure
     networks:
-      - tki-net
+      - sp-net
     volumes:
       - ./application.yml:/opt/shinyproxy/application.yml
       - /var/run/docker.sock:/var/run/docker.sock
