@@ -50,7 +50,7 @@ show_plotly_center_type_pie <- function(data) {
       )
     )
   ) %>%
-  	config(locale = "es")
+  	plotly::config(locale = "es")
   
   fig <- fig %>% 
     layout(
@@ -84,7 +84,7 @@ show_plotly_cuisine_pie <- function(data) {
         )
       )
     ) %>%
-  	config(locale = "es")
+  	plotly::config(locale = "es")
   
   fig <- fig %>% 
     layout(
