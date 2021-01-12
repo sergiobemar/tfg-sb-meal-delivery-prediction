@@ -7,12 +7,8 @@ proxy:
     auth-url: https://accounts.google.com/o/oauth2/v2/auth
     token-url: https://www.googleapis.com/oauth2/v4/token
     jwks-url: https://www.googleapis.com/oauth2/v3/certs
-    client-id: 984130808975-fkljqsfu43e3095b3r8pu7rqjc847gk8.apps.googleusercontent.com
-    client-secret: w5nN3dhB5EfoAoslWl8mAUPd
-    # client-id: 984130808975-5ia6lbj9cbh11a6jm27lcte10n2krs3q.apps.googleusercontent.com
-    # client-secret: 0skUAOWGYQMvp2hD2W7ZpqsN
-    
-    # Auth0
+    client-id: 984130808975-5ia6lbj9cbh11a6jm27lcte10n2krs3q.apps.googleusercontent.com
+    client-secret: 0skUAOWGYQMvp2hD2W7ZpqsN
     # auth-url: https://sergiobemar.eu.auth0.com/authorize
     # token-url: https://sergiobemar.eu.auth0.com/oauth/token
     # jwks-url: https://sergiobemar.eu.auth0.com/.well-known/jwks.json
@@ -20,13 +16,12 @@ proxy:
     # client-secret: r1eJ7uww7OyIEJqnb_jv_Opmp4YuMlLSXSIElaGrjZj7N2iUfWbLa79Mm7Ucoe7U
   docker:
     internal-networking: true
-  server:
-    useForwardHeaders: true
   specs:
     - id: 01_prediction
       display-name: Plataforma de Pedidos
       description: Plataforma para el reporting de pedidos realizados así como de la previsión de futuras ventas.
       container-image: sergiobemar/shiny-app-orders
       container-network: sp-net
+
 logging:
   file: shinyproxy.log
