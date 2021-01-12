@@ -13,6 +13,8 @@
 - [9. ShinyProxy](#9-shinyproxy)
 - [10. Config ShinyProxy](#10-config-shinyproxy)
 - [11. Configure Container Registry](#11-configure-container-registry)
+- [Push image to Docker Hub](#push-image-to-docker-hub)
+- [Deploy ShinyProxy](#deploy-shinyproxy)
 
 ## 1. Create a VM Machine in VM Engine
 
@@ -271,9 +273,21 @@ Now, if everything was ok, the image should be shown in GCP Console inside Conta
 
 ![Container Registry - List images](images/shinyproxy-3.5-container-registry-images.png)
 
-##
-docker run --rm -v /var/run/docker.sock:/var
-/run/docker.sock --net sp-net -p 8080:8080 shinyproxy
+## Push image to Docker Hub
+
+```
+docker login --username=sergiobemar
+docker images
+docker tag [IMAGE ID] sergiobemar/shiny-app-orders:latest
+docker push sergiobemar/shiny-app-orders:latest
+```
+
+## Deploy ShinyProxy
+
+```
+docker build -t shinyproxy .
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --net sp-net -p 8080:8080 shinyproxy
+```
 
 <h1>Useful links</h1>
 
