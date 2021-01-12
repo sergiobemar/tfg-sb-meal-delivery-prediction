@@ -74,6 +74,16 @@ get_data <- function() {
     output_path <- paste0(path, table_name, ".csv")
     write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
     
+    ## Center Locations
+    table_name <- "center_location"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
+    ## Meal Names
+    table_name <- "meal_name"
+    output_path <- paste0(path, table_name, ".csv")
+    write_csv_from_table_clickhouse(conn = con_ch, table_name = table_name, output_path)
+    
     # Disconnect
     dbDisconnect(con_ch)
     
@@ -109,6 +119,15 @@ get_shiny_data_ch <- function() {
   # Predict info
   df_test <<- read.csv2(paste0("./data/clickhouse/", "test.csv"), sep = ";") %>% as.data.table()
   
+  # Get data for center locations
+  df_center_locations <<- read.csv2(paste0("./data/clickhouse/", "center_location.csv"), sep = ";", fileEncoding = "UTF-8") %>% as.data.table()
+  
+  # Left join with df_centers
+  df_center <<- df_center %>% left_join(df_center_locations) %>% as.data.table()
+  
+  # Get data for meal names
+  df_meal_names <<- read.csv2(paste0("./data/clickhouse/", "meal_name.csv"), sep = ";", fileEncoding = "UTF-8") %>% as.data.table()
+  df_meal <<- df_meal %>% left_join(df_meal_names) %>% as.data.table()
 }
 
 get_data_predict <- function(center, meal) {

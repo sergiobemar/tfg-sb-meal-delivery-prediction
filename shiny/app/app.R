@@ -12,10 +12,6 @@ config_app()
 # Get data from Clickhouse at first, but if database returns an error, it will be got from the persistent files
 get_data()
 
-# Get data
-# get_shiny_data()
-# get_shiny_data_ch()
-
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
     dashboardHeader(
@@ -74,7 +70,8 @@ ui <- dashboardPage(
                                     selectizeInput(
                                         "dash_center_region",
                                         label = h5("Región"),
-                                        choices = df_center$region_code %>% unique() %>% sort(),
+                                        # choices = df_center$region_code %>% unique() %>% sort(),
+                                        choices = df_center$region %>% unique() %>% sort(),
                                         selected = NULL,
                                         multiple = TRUE
                                     )
@@ -100,50 +97,6 @@ ui <- dashboardPage(
                                 )
                             )
                         )
-                        # column(
-                        #     width = 4,
-                        #     box(
-                        #         title = 'Centros',
-                        #         # width = NULL,
-                        #         # height = 300,
-                        #         selectizeInput(
-                        #             "dash_center_type",
-                        #             label = h5("Tipo"),
-                        #             choices = df_center$center_type %>% unique() %>% sort(),
-                        #             selected = NULL,
-                        #             multiple = TRUE
-                        #         ),
-                        #         selectizeInput(
-                        #             "dash_center_region",
-                        #             label = h5("Región"),
-                        #             choices = df_center$region_code %>% unique() %>% sort(),
-                        #             selected = NULL,
-                        #             multiple = TRUE
-                        #         )
-                        #     )
-                        # ),
-                        # column(
-                        #     width = 4,
-                        #     box(
-                        #         title = 'Comidas',
-                        #         # width = NULL,
-                        #         # height = 300,
-                        #         selectizeInput(
-                        #             "dash_meal_cuisine",
-                        #             label = h5("Cocina"),
-                        #             choices = df_meal$cuisine %>% unique() %>% sort(),
-                        #             selected = NULL,
-                        #             multiple = TRUE
-                        #         ),
-                        #         selectizeInput(
-                        #             "dash_meal_category",
-                        #             label = h5("Categoría"),
-                        #             choices = df_meal$category %>% unique() %>% sort(),
-                        #             selected = NULL,
-                        #             multiple = TRUE
-                        #         )
-                        #     )
-                        # )
                     )
                 ),
                 # Insert busy indicator icon and text
@@ -199,7 +152,7 @@ ui <- dashboardPage(
                         selectizeInput(
                             "pred_meal_id", 
                             label = h5("Comida"), 
-                            choices = df_meal$meal_id %>% unique() %>% sort(), 
+                            choices = df_meal$name %>% unique() %>% sort(), 
                             selected = df_meal$meal_id %>% unique() %>% sort() %>% head(1), 
                             multiple = FALSE,
                             options = NULL
@@ -272,13 +225,18 @@ server <- function(input, output, session) {
         }
 
         # Select region
+        selected_region <- df_center %>% 
+            filter(region %in% input$dash_center_region) %>% 
+            select(region_code) %>%
+            unique() %>%
+            pull()
+        
         if (!is.null(input$dash_center_region)) {
             df_orders <- df_orders %>%
-                filter(region_code %in% input$dash_center_region)
+                filter(region_code %in% selected_region)
         }
 
         # Select meal cuisine
-        # Select center_type
         if (!is.null(input$dash_meal_cuisine)) {
             df_orders <- df_orders %>%
                 filter(cuisine %in% input$dash_meal_cuisine)
@@ -296,15 +254,20 @@ server <- function(input, output, session) {
     # Prediction button
     df_predict <- eventReactive(input$pred_btn_prediction, {
         
+        # Get meal_id
+        meal_id <- df_meal %>% 
+            filter(name == input$pred_meal_id) %>% select(meal_id) %>% pull()
+        
         # Get data to predict the number of orders from center_id and meal_id
-        df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id) 
+        # df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id) 
+        df_list <- get_data_predict(input$pred_center_id, meal_id) 
         
         # Train the model
-        string_train_log <- train_model(input$pred_center_id, input$pred_meal_id)
+        string_train_log <- train_model(input$pred_center_id, meal_id)
         
         # Get predictions using the API Post request
         # df_predictions <- get_predictions(df_list[2][[1]])
-        df_predictions <- get_predictions_2(input$pred_center_id, input$pred_meal_id)
+        df_predictions <- get_predictions_2(input$pred_center_id, meal_id)
         
         # Cast columns
         df_predictions$date <- df_predictions$date %>% as.Date()
@@ -325,7 +288,7 @@ server <- function(input, output, session) {
     # PREDICTION: Get input$meal_id by reactive method
     get_pred_meal_id_info <- reactive({
         df_meal %>% 
-            filter(meal_id == input$pred_meal_id)
+            filter(name == input$pred_meal_id)
     })
     
     # PREDICTION: Observe events for buttons of Alerts BS Modal
@@ -421,7 +384,7 @@ server <- function(input, output, session) {
         
         # Region
         region <- get_pred_center_id_info() %>%
-            select(region_code) %>%
+            select(region) %>%
             pull()
         
         # Type
