@@ -37,7 +37,7 @@ get_predictions_2 <- function(center_id, meal_id) {
   return(output)
 }
 
-send_alert <- function(center, value_orders, value_progression) {
+send_alert <- function(center, meal, value_orders, value_progression) {
   
   # Get the channel URI by type of the center
   center_type <- df_center %>% 
@@ -49,7 +49,9 @@ send_alert <- function(center, value_orders, value_progression) {
   text <- paste0(
     "Las próximas 10 semanas hay ",
     value_orders,
-    " pedidos previstos para el centro ",
+    " pedidos previstos para el plato *",
+    meal,
+    "* en centro ",
     center,
     ", lo que supone una progresión del ",
     value_progression,

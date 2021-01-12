@@ -324,7 +324,7 @@ server <- function(input, output, session) {
             predicted_progression <- predicted_progression %>% round(2)
             
             # Send alert
-            result <- send_alert(input$pred_center_id, predicted_num_orders, predicted_progression)
+            result <- send_alert(input$pred_center_id, input$pred_meal_id, predicted_num_orders, predicted_progression)
             
             # If API response was error
             print(result)
