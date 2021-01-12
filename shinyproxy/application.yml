@@ -20,13 +20,13 @@ proxy:
     # client-secret: r1eJ7uww7OyIEJqnb_jv_Opmp4YuMlLSXSIElaGrjZj7N2iUfWbLa79Mm7Ucoe7U
   docker:
     internal-networking: true
-  server:
-    useForwardHeaders: true
   specs:
     - id: 01_prediction
       display-name: Plataforma de Pedidos
       description: Plataforma para el reporting de pedidos realizados así como de la previsión de futuras ventas.
       container-image: sergiobemar/shiny-app-orders
       container-network: sp-net
+server:
+  useForwardHeaders: true
 logging:
   file: shinyproxy.log
