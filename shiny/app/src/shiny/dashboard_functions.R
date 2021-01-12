@@ -52,9 +52,17 @@ show_plotly_center_type_pie <- function(data) {
     )
   )
   
+  m <- list(
+    l = 20,
+    r = 20,
+    b = 20,
+    t = 50,
+    pad = 5
+  )
+  
   fig <- fig %>% 
     layout(
-      title = "Pedidos por tipología de centros"
+      title = "Pedidos por tipología de centros", margin = m
     ) %>% plotly::config(locale = "es")
   
   fig
@@ -85,9 +93,17 @@ show_plotly_cuisine_pie <- function(data) {
       )
     )
   
+  m <- list(
+    l = 20,
+    r = 20,
+    b = 20,
+    t = 50,
+    pad = 5
+  )
+  
   fig <- fig %>% 
     layout(
-      title = "Pedidos por tipo de cocina"
+      title = "Pedidos por tipo de cocina", margin = m
     ) %>% plotly::config(locale = "es")
   
   fig
@@ -112,6 +128,14 @@ show_plotly_general_orders <- function(data) {
     mode = 'lines'
   )
   
+  m <- list(
+    l = 20,
+    r = 20,
+    b = 20,
+    t = 50,
+    pad = 5
+  )
+  
   fig <- fig %>% 
     layout(
       title = "Evolución temporal de los pedidos",
@@ -122,21 +146,24 @@ show_plotly_general_orders <- function(data) {
       yaxis = list (
         title = "Nb pedidos",
         tickformat = ",.0f"
-      )
+      ),
+      margin = m
     ) %>% plotly::config(locale = "es")
   
   fig
 }
 
 # Show predictions Plotly chart
-show_plotly_prediction_line_chart <- function(data_train, data_test) {
+show_plotly_prediction_line_chart <- function(data_train, data_test, rmse) {
+  
   # Summarise train dataframe
   df_plot_train <- data_train %>% 
     group_by(date) %>%
     summarise(
       total_orders = sum(num_orders)
     ) %>% 
-    ungroup()
+    ungroup() %>% 
+    as.data.frame()
   
   fig <- df_plot_train %>% plot_ly(
     x = ~date,
@@ -152,10 +179,61 @@ show_plotly_prediction_line_chart <- function(data_train, data_test) {
     summarise(
       total_orders = sum(num_orders)
     ) %>% 
-    ungroup()
+    ungroup() %>% 
+    as.data.frame()
   
-  fig <- fig %>% add_lines(
-    data = df_plot_test,
+  print(df_plot_train %>% filter(date == max(date)) %>% length())
+  print(df_plot_test %>% length())
+  
+  # Calculate confidence interval
+  df_plot_prediction <- bind_rows(
+    df_plot_test,
+    df_plot_train %>% filter(date == max(date))
+  ) %>% 
+    arrange(date) %>%
+    mutate(
+      total_orders_min = ifelse(date == min(date), total_orders - 0, total_orders - rmse),
+      total_orders_max = ifelse(date == min(date), total_orders - 0, total_orders + rmse)
+    ) %>% 
+    mutate(
+      total_orders_min = if_else(total_orders_min < 0, 0, total_orders_min),
+      total_orders_max = if_else(total_orders_max < 0, 0, total_orders_max)
+    )
+  
+  
+  print(df_plot_prediction %>% length())
+  
+  # Add high confidence interval
+  fig <- fig %>% add_trace(
+    data = df_plot_prediction,
+    x = ~date,
+    y = ~total_orders_max,
+    name = 'Predicción',
+    type = 'scatter',
+    mode = 'lines',
+    line = list(color = 'transparent'),
+    showlegend = FALSE,
+    name = 'Pedidos máximos'
+  )
+  
+  # Add low confidence interval
+  fig <- fig %>% add_trace(
+    data = df_plot_prediction,
+    x = ~date,
+    y = ~total_orders_min,
+    name = 'Predicción',
+    type = 'scatter',
+    mode = 'lines',
+    fill = 'tonexty',
+    fillcolor='rgba(0,100,80,0.2)',
+    line = list(color = 'transparent'),
+    showlegend = FALSE,
+    name = 'Pedidos mínimos'
+  )
+  
+  # Add prediction line
+  fig <- fig %>% add_trace(
+    data = df_plot_prediction,
     x = ~date,
     y = ~total_orders,
     name = 'Predicción', 
@@ -163,17 +241,28 @@ show_plotly_prediction_line_chart <- function(data_train, data_test) {
     mode = 'lines'
   )
   
+  # Layout
+  m <- list(
+    l = 20,
+    r = 20,
+    b = 50,
+    t = 50,
+    pad = 5
+  )
+  
   fig <- fig %>% 
     layout(
       title = "Previsión de pedidos",
       separators = ',.',
+      showlegend = FALSE,
       xaxis = list(
         title = "Fecha"
       ),
       yaxis = list (
         title = "Nb pedidos",
         tickformat = ",.0f"
-      )
+      ),
+      margin = m
     ) %>% plotly::config(locale = "es")
   
   fig

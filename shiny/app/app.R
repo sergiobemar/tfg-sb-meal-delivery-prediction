@@ -194,6 +194,8 @@ ui <- dashboardPage(
                     valueBoxOutput("pred_show_progression")
                 ),
                 
+                hr(),
+                
                 # Charts
                 fluidRow(
                     column(
@@ -425,7 +427,7 @@ server <- function(input, output, session) {
     
     # PREDICTION: When predictions are calculated, it's showed a Plotly chart for predicted orders
     output$predicted_orders_line_chart <- renderPlotly({
-        show_plotly_prediction_line_chart(df_predict()[1][[1]], df_predict()[2][[1]])
+        show_plotly_prediction_line_chart(df_predict()[1][[1]], df_predict()[2][[1]], df_predict()[3][[1]])
     })
     
     # PREDICTION: Value box to show RMSE that model predicts
