@@ -15,7 +15,20 @@ get_data()
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
     dashboardHeader(
-        title = 'PLATAFORMA PEDIDOS'
+        title = 'PLATAFORMA PEDIDOS',
+        tags$li(
+            class = "dropdown",
+            a(
+                "Cerrar sesión",
+                # onclick = "openTab('tab1')",
+                href = NULL,
+                style = 'cursor: pointer; th:href="@{/logout}"; th:if="${isLoggedIn}";',
+                target = "_blank",
+                icon("user")
+                # th:href="@{/logout}",
+                # th:if="${isLoggedIn}"
+            )
+        )
     ),
     dashboardSidebar(
         load_css(),
