@@ -43,6 +43,9 @@ send_alert <- function(center, meal, value_orders, value_progression) {
   center_type <- df_center %>% 
     filter(center_id == center) %>% select(center_type) %>% pull()
   
+  center_city <- df_center %>%
+    filter(center_id == center) %>% select(city) %>% pull()
+  
   uri <- alerts_file %>% filter(name == center_type) %>% select(uri) %>% pull()
   
   # Build the content with the total orders predicted
@@ -51,9 +54,11 @@ send_alert <- function(center, meal, value_orders, value_progression) {
     value_orders,
     " pedidos previstos para el plato *",
     meal,
-    "* en centro ",
+    "* en el centro ",
+    center_city,
+    " (",
     center,
-    ", lo que supone una progresión del ",
+    "), lo que supone una progresión del ",
     value_progression,
     "% respecto al periodo anterior."
   )

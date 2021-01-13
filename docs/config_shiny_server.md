@@ -285,8 +285,9 @@ docker push sergiobemar/shiny-app-orders:latest
 ## Deploy ShinyProxy
 
 ```
+docker service create --network sp-net
 docker build -t shinyproxy .
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --net sp-net -p 8080:8080 shinyproxy
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --net sp-net -p 80:8080 shinyproxy
 ```
 
 <h1>Useful links</h1>

@@ -144,7 +144,12 @@ ui <- dashboardPage(
                         selectizeInput(
                             "pred_center_id", 
                             label = h5("Centro"), 
-                            choices = df_center$center_id %>% unique() %>% sort(), 
+                            # choices = df_center$center_id %>% unique() %>% sort(), 
+                            choice = df_center %>% 
+                                mutate(name = paste0(center_id, " - ", city)) %>% 
+                                arrange(center_id) %>% 
+                                select(name) %>% 
+                                pull(),
                             selected = df_center$center_id %>% unique() %>% sort() %>% head(1), 
                             multiple = FALSE,
                             options = NULL
@@ -185,7 +190,9 @@ ui <- dashboardPage(
                     valueBoxOutput("pred_show_total_orders"),
                     valueBoxOutput("pred_show_turnover"),
                     valueBoxOutput("pred_show_error"),
-                    valueBoxOutput("pred_show_progression")
+                    valueBoxOutput("pred_show_progression_orders"),
+                    valueBoxOutput("pred_show_average_basket"),
+                    valueBoxOutput("pred_show_average_discount")
                 ),
                 
                 hr(),
@@ -254,20 +261,26 @@ server <- function(input, output, session) {
     # Prediction button
     df_predict <- eventReactive(input$pred_btn_prediction, {
         
+        # Get center_id
+        center_id <- get_pred_center_id_info() %>%
+            select(center_id) %>%
+            pull()
+        
         # Get meal_id
         meal_id <- df_meal %>% 
             filter(name == input$pred_meal_id) %>% select(meal_id) %>% pull()
         
         # Get data to predict the number of orders from center_id and meal_id
         # df_list <- get_data_predict(input$pred_center_id, input$pred_meal_id) 
-        df_list <- get_data_predict(input$pred_center_id, meal_id) 
+        # df_list <- get_data_predict(input$pred_center_id, meal_id) 
+        df_list <- get_data_predict(center_id, meal_id) 
         
         # Train the model
-        string_train_log <- train_model(input$pred_center_id, meal_id)
+        string_train_log <- train_model(center_id, meal_id)
         
         # Get predictions using the API Post request
         # df_predictions <- get_predictions(df_list[2][[1]])
-        df_predictions <- get_predictions_2(input$pred_center_id, meal_id)
+        df_predictions <- get_predictions_2(center_id, meal_id)
         
         # Cast columns
         df_predictions$date <- df_predictions$date %>% as.Date()
@@ -281,8 +294,12 @@ server <- function(input, output, session) {
     
     # PREDICTION: Get input$center_id by reactive method
     get_pred_center_id_info <- reactive({
+        
+        # Split to get center_id
+        center_selected <- input$pred_center_id %>% stringr::str_split(" - ", n = 2) %>% map(1) %>% unlist()
+        
         df_center %>% 
-            filter(center_id == input$pred_center_id)
+            filter(center_id == center_selected)
     })
     
     # PREDICTION: Get input$meal_id by reactive method
@@ -304,7 +321,7 @@ server <- function(input, output, session) {
             ## Get the prectied num orders
             predicted_num_orders <- df_predict()[2][[1]] %>% 
                 summarise(
-                    total_orders = sum(base_price, na.rm = T)
+                    total_orders = sum(num_orders, na.rm = T)
                 ) %>% 
                 pull()
             
@@ -312,7 +329,7 @@ server <- function(input, output, session) {
             actual_num_orders <- df_predict()[1][[1]] %>% 
                 head(df_predict()[2][[1]] %>% nrow()) %>%
                 summarise(
-                    total_orders = sum(base_price, na.rm = T)
+                    total_orders = sum(num_orders, na.rm = T)
                 ) %>% 
                 pull()
             
@@ -324,7 +341,12 @@ server <- function(input, output, session) {
             predicted_progression <- predicted_progression %>% round(2)
             
             # Send alert
-            result <- send_alert(input$pred_center_id, input$pred_meal_id, predicted_num_orders, predicted_progression)
+            ## Get center_id
+            center_id <- get_pred_center_id_info() %>%
+                select(center_id) %>%
+                pull()
+            
+            result <- send_alert(center_id, input$pred_meal_id, predicted_num_orders, predicted_progression)
             
             # If API response was error
             print(result)
@@ -450,13 +472,61 @@ server <- function(input, output, session) {
         )
     })
     
-    # PREDICTION: Value box to show the progression from the last period
-    output$pred_show_progression <- renderValueBox({
+    # PREDICTION: Value box to show the estimated average basket
+    output$pred_show_average_basket <- renderValueBox({
+        
+        value <- df_predict()[2][[1]] %>% 
+            summarise(
+                average_basket = sum(base_price, na.rm = T) / sum(num_orders, na.rm = T)) %>% 
+            pull()
+        
+        valueBox(
+            value = paste(
+                format(
+                    round(value, 2),
+                    scientific = FALSE, 
+                    big.mark = ".", 
+                    decimal.mark = ","
+                ),
+                "€",
+                sep = " "
+            ),
+            'Cesta media prevista sobre precio inicial',
+            icon = icon("shopping-bag"), color = 'light-blue'
+        )
+    })
+    
+    # PREDICTION: Value box to show the estimated average basket
+    output$pred_show_average_discount <- renderValueBox({
+        
+        value <- df_predict()[2][[1]] %>% 
+            summarise(
+                average_discount = mean(checkout_price - base_price)) %>% 
+            pull()
+        
+        valueBox(
+            value = paste(
+                format(
+                    round(value, 2),
+                    scientific = FALSE, 
+                    big.mark = ".", 
+                    decimal.mark = ","
+                ),
+                "€",
+                sep = " "
+            ),
+            'Descuento medio previsto',
+            icon = icon("piggy-bank"), color = 'maroon'
+        )
+    })
+    
+    # PREDICTION: Value box to show the number of orders progression from the last period
+    output$pred_show_progression_orders <- renderValueBox({
         
         # Get the prectied num orders
         predicted_num_orders <- df_predict()[2][[1]] %>% 
             summarise(
-                total_orders = sum(base_price, na.rm = T)
+                total_orders = sum(num_orders, na.rm = T)
             ) %>% 
             pull()
         
@@ -464,7 +534,7 @@ server <- function(input, output, session) {
         actual_num_orders <- df_predict()[1][[1]] %>% 
             head(df_predict()[2][[1]] %>% nrow()) %>%
             summarise(
-                total_orders = sum(base_price, na.rm = T)
+                total_orders = sum(num_orders, na.rm = T)
             ) %>% 
             pull()
         
@@ -489,7 +559,7 @@ server <- function(input, output, session) {
                 "%",
                 sep = " "
             ),
-            'Progresión estimada frente al mismo periodo',
+            'Progresión pedidos (mismo periodo)',
             icon = icon("chart-line"), color = color
         )
     })
@@ -513,7 +583,7 @@ server <- function(input, output, session) {
     # PREDICTION: Value box to show total orders that model predicts
     output$pred_show_total_orders <- renderValueBox({
         value <- df_predict()[2][[1]] %>% 
-            summarise(total_orders = sum(base_price, na.rm = T)) %>% 
+            summarise(total_orders = sum(num_orders, na.rm = T)) %>% 
             pull()
         
         valueBox(
@@ -531,7 +601,7 @@ server <- function(input, output, session) {
     # PREDICTION: Value box to show total turnover that model predicts
     output$pred_show_turnover <- renderValueBox({
         value <- df_predict()[2][[1]] %>% 
-            summarise(total_orders = sum(num_orders, na.rm = T)) %>% 
+            summarise(total_orders = sum(base_price, na.rm = T)) %>% 
             pull()
         
         valueBox(
