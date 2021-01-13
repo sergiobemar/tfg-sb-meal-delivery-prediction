@@ -16,19 +16,7 @@ get_data()
 ui <- dashboardPage(
     dashboardHeader(
         title = 'PLATAFORMA PEDIDOS',
-        tags$li(
-            class = "dropdown",
-            a(
-                "Cerrar sesión",
-                # onclick = "openTab('tab1')",
-                href = NULL,
-                style = 'cursor: pointer; th:href="@{/logout}"; th:if="${isLoggedIn}";',
-                target = "_blank",
-                icon("user")
-                # th:href="@{/logout}",
-                # th:if="${isLoggedIn}"
-            )
-        )
+	tag$HTML(' <a role="button" class="btn btn-primary btn-sm" th:href="@{/logout}" th:if="${isLoggedIn}">Sign Out</a>'))
     ),
     dashboardSidebar(
         load_css(),
