@@ -8,13 +8,14 @@
 - [4. R Installation](#4-r-installation)
 - [5. Docker](#5-docker)
 - [6. Build Docker image](#6-build-docker-image)
-- [7. Install Java](#7-install-java)
-- [8. Install Maven](#8-install-maven)
-- [9. ShinyProxy](#9-shinyproxy)
-- [10. Config ShinyProxy](#10-config-shinyproxy)
-- [11. Configure Container Registry](#11-configure-container-registry)
-- [Push image to Docker Hub](#push-image-to-docker-hub)
-- [Deploy ShinyProxy](#deploy-shinyproxy)
+- [7. Push to Docker Hub](#7-push-to-docker-hub)
+- [8. ShinyProxy](#8-shinyproxy)
+	- [8.1. (Optional for testing) Install Java](#81-optional-for-testing-install-java)
+	- [8.2. (Optional for testing) Install Maven](#82-optional-for-testing-install-maven)
+	- [8.3. (Optional for testing) Launch ShinyProxy](#83-optional-for-testing-launch-shinyproxy)
+	- [8.4. (Optional for testing) Config ShinyProxy](#84-optional-for-testing-config-shinyproxy)
+- [9. Deploy ShinyProxy using Docker](#9-deploy-shinyproxy-using-docker)
+- [10. (Optional) *OpenID* Authentication](#10-optional-openid-authentication)
 
 ## 1. Create a VM Machine in VM Engine
 
@@ -164,7 +165,27 @@ sudo docker run -it -p 80:3838 shiny-app
 
 With this command, you are setting that it was interactive and allocated a pseudo-TTY with ```-it``` and the port redirection ```-p [HOST PORT]:[CONTAINER PORT]```. At the end, it's set the name of the image, in this case *shiny-app*.
 
-## 7. Install Java
+## 7. Push to Docker Hub
+
+So that ShinyProxy was able to run our specific Docker image, it's necessary to keep it into Docker Hub which allows to pull it. For this step, it's mandatory to authenticate into the platform with a username.
+
+```
+docker login --username=sergiobemar
+```
+
+Then, you can push/pull the images you need. For push a image, it's needed to tag the image and then push it.
+
+```
+docker images
+docker tag [IMAGE ID] sergiobemar/shiny-app-orders:latest
+docker push sergiobemar/shiny-app-orders:latest
+```
+
+## 8. ShinyProxy
+
+In this project, *ShinyProxy* it's deployed using a Docker image, but it's possible to install it natively. Due to be useful in order to learn about this *framework*, at the first time native installation was tested so the steps would be the following:
+
+### 8.1. (Optional for testing) Install Java
 
 In order to be able to use ShinyProxy, it's needed to have installed Java and Maven. At first, let's start with Java.
 
@@ -188,7 +209,7 @@ The result obtained should be such as this.
 
 ![ShinyProxy - Java Installation](images/shinyproxy-1-java-installation.png)
 
-## 8. Install Maven
+### 8.2. (Optional for testing) Install Maven
 
 Maven is a necessary package for ShinyProxy, so let's install it.
 
@@ -204,7 +225,7 @@ mvn -version
 
 ![ShinyProxy - Maven Installation](images/shinyproxy-2-maven-installation.png)
 
-## 9. ShinyProxy
+### 8.3. (Optional for testing) Launch ShinyProxy
 
 Now, everything is ready to start to install ShinyProxy and configure it.
 
@@ -220,75 +241,124 @@ mvn -U clean install
 
 If everything was ok, a file such as *`target/shinyproxy-2.x.x.jar`* should exist.
 
-## 10. Config ShinyProxy
+### 8.4. (Optional for testing) Config ShinyProxy
 
 Now, we have to set the Shiny dashboard that it's created for the project as the application used by ShinyProxy, for be capable of making this configuration exists the file *`target/classes/application.yml`*. 
 
 Edit it with the following configuration:
 
 ```
-
+proxy:
+	title: Open Analytics Shiny Proxy
+	logo-url: http://www.openanalytics.eu/sites/www.openanalytics.eu/themes/oa/logo.png
+	landing-page: /
+	heartbeat-rate: 10000
+	heartbeat-timeout: 60000
+	port: 8080
+	authentication: ldap
+	admin-groups: scientists
+	# Example: 'simple' authentication configuration
+	users:
+	- name: jack
+		password: password
+		groups: scientists
+	- name: jeff
+		password: password
+		groups: mathematicians
+	specs:
+		- id: 01_hello
+			display-name: Hello Application
+			description: Application which demonstrates the basics of a Shiny app
+			container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
+			container-image: openanalytics/shinyproxy-demo
+			access-groups: [scientists, mathematicians]
 ```
 
-## 11. Configure Container Registry
+## 9. Deploy ShinyProxy using Docker
 
-Container Registry allow the user to have several images upload on the cloud in order to get them from specific pod with Docker.
+Using a Docker image is the choosen solution. For this proposal, at first it's needed to create both a `Dockerfile` and `application.yml`.
 
-At first, you have to go to your machine so that Docker has permissions in order to pull and push images to the service. Then, open the console and run the following commands:
++ `Dockerfile`
 
-```
-gcloud auth login
-```
+	This image downloads, compile and run ShinyProxy, and also provides the following `application.yml` to the container.
+	
+	```
+	FROM openjdk:8-jre
 
-![Container Registry - gcloud auth login](images/shinyproxy-3.2-gcloud-authpng.png)
+	RUN mkdir -p /opt/shinyproxy/
+	RUN wget https://www.shinyproxy.io/downloads/shinyproxy-2.3.1.jar -O /opt/shinyproxy/shinyproxy.jar
+	COPY application.yml /opt/shinyproxy/application.yml
 
-```
-gcloud auth configure-docker
-```
+	RUN cat /opt/shinyproxy/application.yml
 
-![Container Registry - gcloud auth configure-docker](images/shinyproxy-3.3-gcloud-configure-dockerpng.png)
+	WORKDIR /opt/shinyproxy/
+	CMD ["java", "-jar", "/opt/shinyproxy/shinyproxy.jar"]
+	```
 
-After that, you can go to the machine in order to push the Shiny app image to *Container Registry* and tag the image with the registry name by using the command: `docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/IMAGE` where:
++ `application.yml`
 
-+ `SOURCE_IMAGE`: local image name or image ID
-+ `HOSTNAME`: specifies location where you will store the image, for European Union it has to be used `eu.gcr.io`
-+ `PROJECT_ID`: GCP project name
-+ `IMAGE`: name of the image
+	In this file there are the whole configuration about ShinyProxy related to connections, aplications and authentication.
 
-```
-docker tag shiny-app-orders eu.gcr.io/phonic-botany-288716/shiny-app-orders
-```
+	```
+	proxy:
+	port: 8080
+	admin-groups: admins
+	container-wait-time: 60000
+	authentication: simple
+	users:
+		- name: jack
+			password: password
+			groups: scientists
+	docker:
+		internal-networking: true
+	specs:
+		- id: 01_prediction
+			display-name: Plataforma de Pedidos
+			description: Plataforma para el reporting de pedidos realizados así como de la previsión de futuras ventas.
+			container-image: sergiobemar/shiny-app-orders
+			container-network: sp-net
 
-![Container Registry - docker tag](images/shinyproxy-3.1-container_registry.png)
+	logging:
+	file: shinyproxy.log
 
-Then, you can push the image to *Container Registry*.
+	```
 
-```
-docker push eu.gcr.io/phonic-botany-288716/shiny-app-orders
-```
+	At the first time it's better in order to test the functionality to use a simple authentication. Then, due to using a image pushed from *Docker Hub* it's necessary set the parameter
 
-![Container Registry - docker push](images/shinyproxy-3.4-docker-pushpng.png)
+	```
+	proxy
+		[...]
+		docker:
+			internal-networking: true
+	```
 
-Now, if everything was ok, the image should be shown in GCP Console inside Container Registry menu.
+	Then, you can follow a configuration for the app like the previous, but it's very important to set the `container-network` parameter with the network that container will use.
 
-![Container Registry - List images](images/shinyproxy-3.5-container-registry-images.png)
-
-## Push image to Docker Hub
-
-```
-docker login --username=sergiobemar
-docker images
-docker tag [IMAGE ID] sergiobemar/shiny-app-orders:latest
-docker push sergiobemar/shiny-app-orders:latest
-```
-
-## Deploy ShinyProxy
+Then, you can go to the `shinyproxy/` folder and run the following commands:
 
 ```
 docker service create --network sp-net
 docker build -t shinyproxy .
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --net sp-net -p 80:8080 shinyproxy
 ```
+
+## 10. (Optional) *OpenID* Authentication
+
+It's very intersting in order to improve the login experience use an *OpenID* provider to allow the users to authenticate in the system using a login that they might know, like Google login.
+
+You can use providers like *[Auth0](https://auth0.com/)* or get a Google Cloud credential, for the project it's used the second option. For making this process, it's necessary to use an own domain which redirects to the ShinyProxy machine, this procedure can be made using GCP too.
+
+1. Create a DNS zone
+
+![Create a DNS Zone](./images/auth/1-dns-create-zone-dns.png)
+
+2. Create a record set with the domain pointing to the IP of ShinyProxy machine
+
+![Point to the machine](./images/auth/2-dns-create-record-set.png)
+
+3. Create the credentials and redirect to the used domain
+
+![GCP Credentials](./images/auth/3-openid-credentials.png)
 
 <h1>Useful links</h1>
 
