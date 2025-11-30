@@ -8,13 +8,13 @@ At first, you have to go to your machine so that Docker has permissions in order
 gcloud auth login
 ```
 
-![Container Registry - gcloud auth login](images/shinyproxy-3.2-gcloud-authpng.png)
+![Container Registry - gcloud auth login](images/shinyproxy-3.2-gcloud-auth.png)
 
 ```
 gcloud auth configure-docker
 ```
 
-![Container Registry - gcloud auth configure-docker](images/shinyproxy-3.3-gcloud-configure-dockerpng.png)
+![Container Registry - gcloud auth configure-docker](images/shinyproxy-3.3-gcloud-configure-docker.png)
 
 After that, you can go to the machine in order to push the Shiny app image to *Container Registry* and tag the image with the registry name by using the command: `docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/IMAGE` where:
 
